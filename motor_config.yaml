@@ -1,0 +1,57 @@
+name: "Valve Controller"
+board: "MKS TinyBee V1.0"
+stepping:
+  engine: I2S_STATIC
+  idle_ms: 255
+  pulse_us: 4
+  dir_delay_us: 1
+  disable_delay_us: 0
+i2so:
+  bck_pin: gpio.25
+  ws_pin: gpio.26
+  data_pin: gpio.27
+axes:
+  x:
+    steps_per_mm: 200
+    max_rate_mm_per_min: 2000
+    acceleration_mm_per_sec2: 500
+    max_travel_mm: 200
+    homing:
+      cycle: 1
+      positive_direction: false
+      mpos_mm: 0
+      feed_mm_per_min: 700
+      seek_mm_per_min: 1000
+      settle_ms: 500
+      seek_scaler: 2.0
+      feed_scaler: 2.0
+    motor0:
+      limit_neg_pin: gpio.33:low:pu
+      limit_pos_pin: NO_PIN
+      pulloff_mm: 5
+      stepstick:
+        step_pin: I2SO.1
+        direction_pin: I2SO.2
+        disable_pin: I2SO.0
+  y:
+    steps_per_mm: 200
+    max_rate_mm_per_min: 2000
+    acceleration_mm_per_sec2: 500
+    max_travel_mm: 200
+    homing:
+      cycle: 1
+      positive_direction: false
+      mpos_mm: 0
+      feed_mm_per_min: 700
+      seek_mm_per_min: 1000
+      settle_ms: 500
+      seek_scaler: 2.0
+      feed_scaler: 2.0
+    motor0:
+      limit_neg_pin: gpio.32:low:pu
+      limit_pos_pin: NO_PIN
+      pulloff_mm: 5
+      stepstick:
+        step_pin: I2SO.4
+        direction_pin: I2SO.5
+        disable_pin: I2SO.3
