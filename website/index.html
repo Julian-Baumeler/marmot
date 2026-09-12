@@ -13,7 +13,7 @@
     --dim: #8a8a8a;
     --line: #222;
     --red: #e10600;
-    --nav: 232px;
+    --nav: 248px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
@@ -42,8 +42,29 @@
     letter-spacing: 0.28em;
     text-transform: uppercase;
     color: var(--dim);
-    margin-bottom: 22px;
+    margin-bottom: 14px;
   }
+  .modebtn {
+    border: 1px solid var(--line);
+    padding: 8px 10px;
+    margin-bottom: 16px;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--dim);
+    text-align: center;
+  }
+  .modebtn.on { border-color: #fff; color: #fff; }
+  .modebtn:hover { color: #fff; border-color: #888; }
+  .toc-label {
+    margin: 0 8px 6px;
+    font-size: 9px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: #555;
+    display: none;
+  }
+  body.praesi .toc-label { display: block; }
   .toc {
     display: flex;
     flex-direction: column;
@@ -64,9 +85,16 @@
   .toc .sec {
     margin: 12px 8px 4px;
     font-size: 9px;
-    letter-spacing: 0.28em;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
     color: #555;
+  }
+  .kicker {
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 10px;
   }
   .stagewrap {
     display: grid;
@@ -195,19 +223,21 @@
 <div class="shell">
   <nav>
     <div class="brand">IDPA 1383 · BBZB</div>
+    <button type="button" class="modebtn" id="btn-praesi" aria-pressed="false">Präsi</button>
+    <div class="toc-label" id="toc-label">Themen</div>
     <div class="toc" id="toc"></div>
   </nav>
   <div class="stagewrap">
     <div>
       <div class="top">
-        <span>Julian Baumeler · Mateusz Wnuk · Patrick Zaugg</span>
-        <span id="count">01 / 21</span>
+        <span id="kicker">Julian Baumeler · Mateusz Wnuk · Patrick Zaugg</span>
+        <span id="count">01 / 19</span>
       </div>
       <div class="rule"></div>
     </div>
     <div class="slide" id="slide"></div>
     <div class="foot">
-      <span>← → Folien · F Vollbild · Esc Übersicht</span>
+      <span>← → Folien · F Vollbild · P Präsi · Esc</span>
       <span id="hint">Präsentationsbegleiter</span>
     </div>
   </div>
@@ -244,8 +274,17 @@ function clipBtn(i) {
   return `<button class="playbtn" type="button" onclick="openClip(${i})">▶ ${c.code} · ${c.dur} · ${c.tag}</button>`;
 }
 
+const THEMEN = [
+  { sec:"Einleitung", who:"" },
+  { sec:"Ventile", who:"M", speaker:"Mateusz Wnuk" },
+  { sec:"Schubmessen", who:"P", speaker:"Patrick Zaugg" },
+  { sec:"Brennkammer", who:"J", speaker:"Julian Baumeler" },
+  { sec:"Tests", who:"ALLE" },
+  { sec:"Schluss", who:"" },
+];
+
 const SLIDES = [
-  { sec:"Start", t:"Titel", html: `
+  { id:"titel", sec:"Einleitung", t:"Titel", praesi:false, html: `
     <h1>Vom Skizzenpapier<br>bis zu einem Weltrekord.</h1>
     <p class="lede">Wirtschaftlichstes Triebwerksentwicklungsprogramm im Bereich Kosten per Schubeinheit. Interdisziplinäre Projektarbeit, BBZB, 29. Mai 2026.</p>
     <div class="metrics">
@@ -254,12 +293,13 @@ const SLIDES = [
       <div class="metric"><b>110.6</b><span>CHF / kg Schub</span></div>
       <div class="metric"><b>7 Tests</b><span>YG → MG → MF</span></div>
     </div>`},
-  { sec:"Start", t:"Die Frage", html: `
+  { id:"leitfrage", sec:"Einleitung", t:"Leitfrage", html: `
+    <p class="kicker">Einleitung · Leitfrage</p>
     <h2>Ist ein funktionsfähiges Triebwerk an tausende Franken gebunden?</h2>
     <p class="lede">Ferrari vs. Ford Model T. Nicht maximale Effizienz, sondern Herstellbarkeit, Kosteneffizienz und Skalierbarkeit. COTS plus Eigenfertigung. Druckgasförderung statt Turbopumpe.</p>
     <div class="fig" style="margin-top:22px;height:min(48vh,420px)"><img src="figures/raptor-iteration.png" alt="Raptor 1–3"></div>
     <p class="cap">Abb. 1 · Iteration Raptor — Vorbild für schnelle Hardware-Zyklen</p>`},
-  { sec:"Start", t:"Kennzahlen", html: `
+  { id:"kennzahlen", sec:"Einleitung", t:"Kennzahlen", html: `
     <h2>Was auf der Folie stehen muss.</h2>
     <div class="metrics">
       <div class="metric"><b>24.12 N</b><span>Schub F = Δℓ / k</span></div>
@@ -274,7 +314,7 @@ const SLIDES = [
       <div class="metric"><b>64 s</b><span>MG 3 Brenndauer</span></div>
     </div>
     <p class="lede" style="margin-top:22px">Geometrie Marmot: L<sub>c</sub> 166.7 mm · D<sub>c</sub> 27.9 mm · D<sub>t</sub> 11.4 mm · D<sub>e</sub> 16.1 mm. Kühlung: C<sub>p</sub> Ethanol ≈ 2.43 kJ/(kg·K).</p>`},
-  { sec:"Konzept", t:"Drei Architekturen", html: `
+  { id:"architekturen", sec:"Einleitung", t:"Drei Architekturen", html: `
     <div class="grid3" style="height:100%">
       <div class="card"><h3>01 Kaltgas</h3><p>Inertgas durch Ventil und Düse. Zuverlässig, aber I<sub>sp</sub> zu klein für Hauptantrieb.</p></div>
       <div class="card"><h3>02 Turbopumpe</h3><p>Massive Kammerdrücke, leichte Tanks. Präzisionsschaufeln — widerspricht Low-Cost.</p></div>
@@ -282,9 +322,47 @@ const SLIDES = [
     </div>
     <div class="fig contain" style="margin-top:18px;height:min(46vh,380px)"><img src="figures/arch-druckgas.png" alt="Druckgasförderung"></div>
     <p class="cap">Abb. 5–6 · Open Cycle vs. Druckgasförderung (O₂ · N₂ · Ethanol)</p>`},
-  { sec:"Konzept", t:"Marmot / Laval", html: `
+  { id:"treibstoffe", sec:"Einleitung", t:"Treibstoffe", html: `
+    <h2>Propan-Gas → flüssiges Ethanol</h2>
+    <p class="lede">Bernoulli: Förderung nur wenn Leitungsdruck &gt; Kammerdruck. Gasregler 4 bar + 10 m Schlauch = Druck-Budget-Problem. Ethanol: inkompressibel, höhere volumetrische Energiedichte, Kühlmittel.</p>
+    <div class="eq" data-tex="I_{sp} = \\dfrac{F}{\\dot{m}} \\qquad \\dot{m} = \\rho \\, v \\, A"></div>
+    <div class="eq" data-tex="C_p \\approx 2.43\\,\\mathrm{kJ/(kg\\cdot K)} \\quad \\Delta T_{\\mathrm{EtOH}} \\approx 7\\,\\mathrm{K/s} \\quad \\Delta T_{\\mathrm{O_2}} \\approx 126\\,\\mathrm{K/s}"></div>
+    <div class="grid2" style="height:auto;margin-top:16px">
+      <div class="fig" style="height:240px"><img src="figures/emb-051.png" alt="Drucktank"></div>
+      <div>
+        <p class="card"><h3>Drucktank</h3><p>5-Liter-LKW-Luftbehälter, 15.5 bar zulässig, Betrieb 10 bar N₂ über Ethanol. Flammpunkt 12 °C → Stickstoffpolster, kein Luftgemisch im Tank.</p></div>
+      </div>
+    </div>`},
+  { id:"ventile", sec:"Ventile", t:"Ventile", html: `
+    <p class="kicker">Ventile · M · Mateusz Wnuk</p>
+    <h2>Elektronische Kugelhähne</h2>
+    <p class="lede">MKS TinyBee · FluidNC · Homing über Mikroschalter. Totbereich 28 Schritte (Treibstoff) / 40 Schritte (O₂). 200 Schritte = 90° offen. Kreissegmentfläche:</p>
+    <div class="eq" data-tex="A(h)=r^{2}\\cos^{-1}\\!\\left(1-\\dfrac{h}{r}\\right)-(r-h)\\sqrt{2rh-h^{2}}"></div>
+    <table>
+      <tr><th>Taste</th><th>Funktion</th><th>Taste</th><th>Funktion</th></tr>
+      <tr><td>X / C</td><td>Treibstoff ±1</td><td>B / N</td><td>O₂ ±1</td></tr>
+      <tr><td>W / S</td><td>beide im Verhältnis</td><td>H</td><td>Homing</td></tr>
+      <tr><td>1–0</td><td>10 % … 100 %</td><td>O</td><td>Voröffnung</td></tr>
+    </table>
+    <p class="cap" style="margin-top:14px">Tabelle 1–2 · 50 % Öffnung = Schritt 120 / 80 % = 160</p>`},
+  { id:"schubmessen", sec:"Schubmessen", t:"Messeinrichtung", html: `
     <div class="grid2">
       <div>
+        <p class="kicker">Schubmessen · P · Patrick Zaugg</p>
+        <h2>Schub über Federweg</h2>
+        <p class="lede">3D-Drucker-X-Achse als Führung. Kofferwaage versagte. Zugfeder, kalibrierte Federkonstante. MF 7:</p>
+        <div class="eq" data-tex="F = \\dfrac{\\Delta\\ell}{k} = \\dfrac{15\\,\\mathrm{mm}}{1.608\\,\\mathrm{N/mm}} = 24.12\\,\\mathrm{N} \\approx 2.46\\,\\mathrm{kg}"></div>
+        <p class="lede">Nächste Version: digitale Wägezelle für eine Schubkurve.</p>
+      </div>
+      <div>
+        <div class="fig" style="height:78%"><img src="figures/messe-feder.png" alt="Messeinrichtung"></div>
+        <p class="cap">Abb. 18 · Finale Messeinrichtung</p>
+      </div>
+    </div>`},
+  { id:"marmot", sec:"Brennkammer", t:"Marmot / Laval", html: `
+    <div class="grid2">
+      <div>
+        <p class="kicker">Brennkammer · J · Julian Baumeler</p>
         <h2>Brennkammer Marmot</h2>
         <p class="lede">Konvergent-divergent (Lavaldüse): statischer Druck → kinetische Überschallströmung. Stahl, in fünf Tagen vom Plan zum Test.</p>
         <div class="eq" data-tex="A_t = \\dfrac{\\dot{m}_{tot} \\, C^*}{P_c}"></div>
@@ -298,44 +376,10 @@ const SLIDES = [
         <div class="fig" style="height:42%;margin-top:12px"><img src="figures/marmot-fertigung.png" alt="Marmot Fertigung"></div>
       </div>
     </div>`},
-  { sec:"Konzept", t:"Ventile", html: `
-    <h2>Elektronische Kugelhähne</h2>
-    <p class="lede">MKS TinyBee · FluidNC · Homing über Mikroschalter. Totbereich 28 Schritte (Treibstoff) / 40 Schritte (O₂). 200 Schritte = 90° offen. Kreissegmentfläche:</p>
-    <div class="eq" data-tex="A(h)=r^{2}\\cos^{-1}\\!\\left(1-\\dfrac{h}{r}\\right)-(r-h)\\sqrt{2rh-h^{2}}"></div>
-    <table>
-      <tr><th>Taste</th><th>Funktion</th><th>Taste</th><th>Funktion</th></tr>
-      <tr><td>X / C</td><td>Treibstoff ±1</td><td>B / N</td><td>O₂ ±1</td></tr>
-      <tr><td>W / S</td><td>beide im Verhältnis</td><td>H</td><td>Homing</td></tr>
-      <tr><td>1–0</td><td>10 % … 100 %</td><td>O</td><td>Voröffnung</td></tr>
-    </table>
-    <p class="cap" style="margin-top:14px">Tabelle 1–2 · 50 % Öffnung = Schritt 120 / 80 % = 160</p>`},
-  { sec:"Konzept", t:"Messeinrichtung", html: `
+  { id:"regenerativ", sec:"Brennkammer", t:"Regenerativkühlung", html: `
     <div class="grid2">
       <div>
-        <h2>Schub über Federweg</h2>
-        <p class="lede">3D-Drucker-X-Achse als Führung. Kofferwaage versagte. Zugfeder, kalibrierte Federkonstante. MF 7:</p>
-        <div class="eq" data-tex="F = \\dfrac{\\Delta\\ell}{k} = \\dfrac{15\\,\\mathrm{mm}}{1.608\\,\\mathrm{N/mm}} = 24.12\\,\\mathrm{N} \\approx 2.46\\,\\mathrm{kg}"></div>
-        <p class="lede">Nächste Version: digitale Wägezelle für eine Schubkurve.</p>
-      </div>
-      <div>
-        <div class="fig" style="height:78%"><img src="figures/messe-feder.png" alt="Messeinrichtung"></div>
-        <p class="cap">Abb. 18 · Finale Messeinrichtung</p>
-      </div>
-    </div>`},
-  { sec:"Konzept", t:"Treibstoffe", html: `
-    <h2>Propan-Gas → flüssiges Ethanol</h2>
-    <p class="lede">Bernoulli: Förderung nur wenn Leitungsdruck &gt; Kammerdruck. Gasregler 4 bar + 10 m Schlauch = Druck-Budget-Problem. Ethanol: inkompressibel, höhere volumetrische Energiedichte, Kühlmittel.</p>
-    <div class="eq" data-tex="I_{sp} = \\dfrac{F}{\\dot{m}} \\qquad \\dot{m} = \\rho \\, v \\, A"></div>
-    <div class="eq" data-tex="C_p \\approx 2.43\\,\\mathrm{kJ/(kg\\cdot K)} \\quad \\Delta T_{\\mathrm{EtOH}} \\approx 7\\,\\mathrm{K/s} \\quad \\Delta T_{\\mathrm{O_2}} \\approx 126\\,\\mathrm{K/s}"></div>
-    <div class="grid2" style="height:auto;margin-top:16px">
-      <div class="fig" style="height:240px"><img src="figures/emb-051.png" alt="Drucktank"></div>
-      <div>
-        <p class="card"><h3>Drucktank</h3><p>5-Liter-LKW-Luftbehälter, 15.5 bar zulässig, Betrieb 10 bar N₂ über Ethanol. Flammpunkt 12 °C → Stickstoffpolster, kein Luftgemisch im Tank.</p></div>
-      </div>
-    </div>`},
-  { sec:"Konzept", t:"Regenerativkühlung", html: `
-    <div class="grid2">
-      <div>
+        <p class="kicker">Brennkammer · J · Julian Baumeler</p>
         <h2>Kühlmantel statt Schmelze</h2>
         <p class="lede">O₂/Propan &gt; 3457 °C. Stahl schmilzt ~1420–1460 °C. MG 4: Engine-rich, ~20 % Wandung abgetragen. Lösung: Ethanol durch den äusseren Mantel, dann Injektor — Wärme bleibt im Kreis.</p>
         <div class="fig contain" style="height:48%;margin-top:14px"><img src="figures/regen-kuehlung.png" alt="Regenkühlung Schema"></div>
@@ -346,7 +390,8 @@ const SLIDES = [
         <p class="cap">Abb. 23 · Marmot auf dem Stand, Mirage-Verein Buochs</p>
       </div>
     </div>`},
-  { sec:"Tests", t:"Sieben Tests", html: `
+  { id:"sieben", sec:"Tests", t:"Sieben Tests", html: `
+    <p class="kicker">Tests · ALLE</p>
     <h2>YG · MG · MF</h2>
     <table>
       <tr><th>#</th><th>Code</th><th>Was passiert</th><th>Lektion</th></tr>
@@ -359,7 +404,7 @@ const SLIDES = [
       <tr><td>07</td><td>MF 7</td><td>gebogenes Stahlrohr, Nennleistung</td><td>24.12 N · 2.46 kg</td></tr>
     </table>
     <p class="lede" style="margin-top:16px">Nächste Folien: Originalclips, volle Auflösung. Klick oder 1–7.</p>`},
-  { sec:"Tests", t:"YG 1", html: `
+  { id:"yg1", sec:"Tests", t:"YG 1", html: `
     <div class="grid2">
       <div>
         <h2>YG 1 · Minimaltest</h2>
@@ -368,7 +413,7 @@ const SLIDES = [
       </div>
       <div class="fig"><img src="posters/01-yg-1.jpg" alt="YG 1"></div>
     </div>`},
-  { sec:"Tests", t:"YG 2", html: `
+  { id:"yg2", sec:"Tests", t:"YG 2", html: `
     <div class="grid2">
       <div>
         <h2>YG 2 · Fernsteuerung</h2>
@@ -377,7 +422,7 @@ const SLIDES = [
       </div>
       <div class="fig"><img src="posters/02-yg-2.jpg" alt="YG 2"></div>
     </div>`},
-  { sec:"Tests", t:"MG 3", html: `
+  { id:"mg3", sec:"Tests", t:"MG 3", html: `
     <div class="grid2">
       <div>
         <h2>MG 3 · Erste Kammer</h2>
@@ -386,7 +431,7 @@ const SLIDES = [
       </div>
       <div class="fig"><img src="posters/03-mg-3.jpg" alt="MG 3"></div>
     </div>`},
-  { sec:"Tests", t:"MG 4", html: `
+  { id:"mg4", sec:"Tests", t:"MG 4", html: `
     <div class="grid2">
       <div>
         <h2>MG 4 · Engine-rich</h2>
@@ -395,7 +440,7 @@ const SLIDES = [
       </div>
       <div class="fig"><img src="posters/04-mg-4.jpg" alt="MG 4"></div>
     </div>`},
-  { sec:"Tests", t:"MF 5", html: `
+  { id:"mf5", sec:"Tests", t:"MF 5", html: `
     <div class="grid2">
       <div>
         <h2>MF 5 · Ethanol</h2>
@@ -404,7 +449,7 @@ const SLIDES = [
       </div>
       <div class="fig"><img src="figures/mf5-feuer.png" alt="MF 5 Feuer"></div>
     </div>`},
-  { sec:"Tests", t:"MF 6", html: `
+  { id:"mf6", sec:"Tests", t:"MF 6", html: `
     <div class="grid2">
       <div>
         <h2>MF 6 · Erster Schub</h2>
@@ -415,7 +460,7 @@ const SLIDES = [
       </div>
       <div class="fig"><img src="figures/mf6-schub.png" alt="MF 6 Schub"></div>
     </div>`},
-  { sec:"Tests", t:"MF 7", html: `
+  { id:"mf7", sec:"Tests", t:"MF 7", html: `
     <div class="grid2">
       <div>
         <h2>MF 7 · Der letzte Moment</h2>
@@ -425,7 +470,7 @@ const SLIDES = [
       </div>
       <div class="fig contain"><img src="figures/mf7-schub.png" alt="MF 7"></div>
     </div>`},
-  { sec:"Schluss", t:"Kosten", html: `
+  { id:"kosten", sec:"Schluss", t:"Kosten", html: `
     <h2>Kosten per Schubeinheit</h2>
     <table>
       <tr><th>Projekt</th><th>Infra</th><th>Triebwerk</th><th>Total</th><th>Schub</th><th>CHF / kg</th></tr>
@@ -440,7 +485,7 @@ const SLIDES = [
     </div>
     <div class="fig contain" style="height:34%;margin-top:16px"><img src="figures/kosten.png" alt="Kostenplot"></div>
     <p class="cap">Tabelle 3 · Diagramm 1 · Totalkosten vs. Schub</p>`},
-  { sec:"Schluss", t:"Schluss", html: `
+  { id:"schluss", sec:"Schluss", t:"Schluss", html: `
     <h2>Es geht. Iterativ.</h2>
     <p class="lede">Ein funktionsfähiges druckgasgefördertes Triebwerk aus Baumarkt und Werkstatt ist möglich. Fast jede Teilsystem — Ventile, Kammer, Kühlung, Messung, Werkstoff — musste nach dem Test neu gebaut werden. Das ist der Prozess, nicht der Fehler.</p>
     <div class="metrics">
@@ -452,23 +497,32 @@ const SLIDES = [
     <p class="lede" style="margin-top:28px">Julian Baumeler · Mateusz Wnuk · Patrick Zaugg · Pascal Basler · IDPA 1383 · 29.05.2026</p>`},
 ];
 
-let idx = 0;
 const toc = document.getElementById("toc");
-let lastSec = "";
-SLIDES.forEach((s, i) => {
-  if (s.sec !== lastSec) {
-    const d = document.createElement("div");
-    d.className = "sec";
-    d.textContent = s.sec;
-    toc.appendChild(d);
-    lastSec = s.sec;
-  }
-  const b = document.createElement("button");
-  b.type = "button";
-  b.textContent = String(i+1).padStart(2,"0") + "  " + s.t;
-  b.onclick = () => go(i);
-  toc.appendChild(b);
-});
+const btnPraesi = document.getElementById("btn-praesi");
+let idx = 0;
+let praesi = false;
+const TEAM = "Julian Baumeler · Mateusz Wnuk · Patrick Zaugg";
+
+function modeFromQuery() {
+  const raw = new URLSearchParams(location.search).get("mode") || "";
+  const v = raw.normalize("NFC").toLowerCase();
+  return v === "präsi" || v === "praesi" || v === "prasi" || v === "jpsm";
+}
+
+function themaOf(sec) {
+  return THEMEN.find((x) => x.sec === sec) || { sec, who:"" };
+}
+
+function secLabel(sec) {
+  const t = themaOf(sec);
+  return t.who ? `${t.sec} (${t.who})` : t.sec;
+}
+
+function deck() {
+  if (!praesi) return SLIDES;
+  const lead = SLIDES.find((s) => s.id === "leitfrage");
+  return [lead, ...SLIDES.filter((s) => s.praesi !== false && s.id !== "leitfrage")];
+}
 
 function typeset(el) {
   el.querySelectorAll("[data-tex]").forEach((n) => {
@@ -478,15 +532,67 @@ function typeset(el) {
   });
 }
 
+function buildToc() {
+  toc.replaceChildren();
+  let lastSec = "";
+  deck().forEach((s, i) => {
+    if (s.sec !== lastSec) {
+      const d = document.createElement("div");
+      d.className = "sec";
+      d.textContent = secLabel(s.sec);
+      toc.appendChild(d);
+      lastSec = s.sec;
+    }
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = String(i + 1).padStart(2, "0") + "  " + s.t;
+    b.onclick = () => go(i);
+    toc.appendChild(b);
+  });
+}
+
+function syncChrome() {
+  document.body.classList.toggle("praesi", praesi);
+  btnPraesi.classList.toggle("on", praesi);
+  btnPraesi.setAttribute("aria-pressed", praesi ? "true" : "false");
+  btnPraesi.textContent = praesi ? "Präsi · an" : "Präsi";
+  document.title = praesi
+    ? "Raketentriebwerk · Präsentationsmodus"
+    : "Raketentriebwerk · Präsentationsbegleiter";
+}
+
+function kickerText(s) {
+  const t = themaOf(s.sec);
+  if (t.who && t.speaker) return `${t.sec} (${t.who}) · ${t.speaker}`;
+  if (t.who) return `${t.sec} (${t.who})`;
+  return praesi ? t.sec : TEAM;
+}
+
 function go(i) {
-  idx = (i + SLIDES.length) % SLIDES.length;
-  document.getElementById("count").textContent = String(idx+1).padStart(2,"0") + " / " + String(SLIDES.length).padStart(2,"0");
-  document.getElementById("hint").textContent = SLIDES[idx].t;
+  const d = deck();
+  idx = (i + d.length) % d.length;
+  const s = d[idx];
+  document.getElementById("count").textContent =
+    String(idx + 1).padStart(2, "0") + " / " + String(d.length).padStart(2, "0");
+  document.getElementById("hint").textContent = s.t;
+  document.getElementById("kicker").textContent = kickerText(s);
   const el = document.getElementById("slide");
-  el.innerHTML = SLIDES[idx].html;
+  el.innerHTML = s.html;
   typeset(el);
   [...toc.querySelectorAll("button")].forEach((b, n) => b.classList.toggle("on", n === idx));
-  history.replaceState(null, "", "#/" + (idx+1));
+  const url = new URL(location.href);
+  if (praesi) url.searchParams.set("mode", "präsi");
+  else url.searchParams.delete("mode");
+  history.replaceState(null, "", url.pathname + url.search + "#/" + (idx + 1));
+}
+
+function setPraesi(on) {
+  const id = deck()[idx] && deck()[idx].id;
+  praesi = on;
+  syncChrome();
+  buildToc();
+  const n = deck().findIndex((s) => s.id === id);
+  go(n >= 0 ? n : 0);
 }
 
 const player = document.getElementById("player");
@@ -504,6 +610,7 @@ function closeTheater() {
   document.body.classList.remove("theater");
 }
 document.getElementById("btn-back").onclick = closeTheater;
+btnPraesi.onclick = () => setPraesi(!praesi);
 player.addEventListener("dblclick", () => {
   const req = player.requestFullscreen || player.webkitRequestFullscreen;
   if (req) req.call(player);
@@ -520,11 +627,12 @@ window.addEventListener("keydown", (e) => {
     return;
   }
   if (th) return;
-  if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); go(idx+1); }
-  if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); go(idx-1); }
+  if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); go(idx + 1); }
+  if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); go(idx - 1); }
   if (e.key === "Home") go(0);
-  if (e.key === "End") go(SLIDES.length-1);
-  if (e.key >= "1" && e.key <= "7") openClip(Number(e.key)-1);
+  if (e.key === "End") go(deck().length - 1);
+  if (e.key >= "1" && e.key <= "7") openClip(Number(e.key) - 1);
+  if (e.key === "p" || e.key === "P") { e.preventDefault(); setPraesi(!praesi); }
   if (e.key === "f" || e.key === "F") {
     const el = document.documentElement;
     const req = el.requestFullscreen || el.webkitRequestFullscreen;
@@ -533,8 +641,12 @@ window.addEventListener("keydown", (e) => {
 });
 
 function boot() {
+  praesi = modeFromQuery();
+  syncChrome();
+  buildToc();
   const m = location.hash.match(/^#\/(\d+)$/);
-  go(m ? Math.max(0, Math.min(SLIDES.length-1, Number(m[1])-1)) : 0);
+  const d = deck();
+  go(m ? Math.max(0, Math.min(d.length - 1, Number(m[1]) - 1)) : 0);
 }
 window.addEventListener("hashchange", boot);
 if (window.katex) boot();

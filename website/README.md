@@ -14,6 +14,10 @@ python3 server.py                            # http://127.0.0.1:8765/
 
 `PORT` / `HOST` override the bind address. Without S3 credentials, `/media/*.mp4` 404s unless you place real files in `media/`.
 
+## Präsentationsmodus (JPSM)
+
+`/?mode=präsi` öffnen, oder **Präsi** in der Seitenleiste / Taste **P**. Die erste Folie ist die Leitfrage. Das Inhaltsverzeichnis folgt den Themen: Einleitung, Ventile (M), Schubmessen (P), Brennkammer (J), Tests (ALLE), Schluss. Ohne Präsi-Modus bleibt die Titelfolie die Startseite.
+
 ## Deploy (Railway)
 
 Keep this folder as the service root so `Dockerfile`, `Procfile`, and `server.py` stay together.
