@@ -13,7 +13,7 @@
     --dim: #8a8a8a;
     --line: #222;
     --red: #e10600;
-    --nav: 248px;
+    --nav: 260px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
@@ -53,6 +53,7 @@
     text-transform: uppercase;
     color: var(--dim);
     text-align: center;
+    width: 100%;
   }
   .modebtn.on { border-color: #fff; color: #fff; }
   .modebtn:hover { color: #fff; border-color: #888; }
@@ -85,9 +86,19 @@
   .toc .sec {
     margin: 12px 8px 4px;
     font-size: 9px;
-    letter-spacing: 0.22em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: #555;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    white-space: nowrap;
+  }
+  .toc .tag {
+    letter-spacing: 0.08em;
+    color: #9a9a9a;
+    flex-shrink: 0;
   }
   .kicker {
     font-size: 11px;
@@ -513,11 +524,6 @@ function themaOf(sec) {
   return THEMEN.find((x) => x.sec === sec) || { sec, who:"" };
 }
 
-function secLabel(sec) {
-  const t = themaOf(sec);
-  return t.who ? `${t.sec} (${t.who})` : t.sec;
-}
-
 function deck() {
   if (!praesi) return SLIDES;
   const lead = SLIDES.find((s) => s.id === "leitfrage");
@@ -539,7 +545,16 @@ function buildToc() {
     if (s.sec !== lastSec) {
       const d = document.createElement("div");
       d.className = "sec";
-      d.textContent = secLabel(s.sec);
+      const meta = themaOf(s.sec);
+      const name = document.createElement("span");
+      name.textContent = meta.sec;
+      d.appendChild(name);
+      if (meta.who) {
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = "(" + meta.who + ")";
+        d.appendChild(tag);
+      }
       toc.appendChild(d);
       lastSec = s.sec;
     }
