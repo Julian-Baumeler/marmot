@@ -180,6 +180,7 @@
     object-fit: contain;
     object-position: center;
     background: #111;
+    image-orientation: from-image;
   }
   .cap {
     margin-top: 8px;
@@ -225,7 +226,7 @@
   body.theater #theater { display: grid; }
   body.theater .shell { display: none; }
   .stage { position: relative; min-height: 0; border: 1px solid var(--line); background: #000; }
-  video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+  video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; image-orientation: from-image; }
   .katex { color: #fff; }
   @media (max-width: 980px) {
     .shell { grid-template-columns: 1fr; }
