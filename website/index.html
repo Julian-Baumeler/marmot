@@ -106,6 +106,7 @@
     text-transform: uppercase;
     color: var(--dim);
     margin-bottom: 10px;
+    flex-shrink: 0;
   }
   .stagewrap {
     display: grid;
@@ -127,6 +128,9 @@
     min-height: 0;
     min-width: 0;
     overflow: auto;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
   }
   .foot {
     display: flex;
@@ -139,14 +143,15 @@
     text-transform: uppercase;
     color: var(--dim);
   }
-  h1 { font-size: clamp(28px, 3.4vw, 44px); font-weight: 400; letter-spacing: 0.02em; }
-  h2 { font-size: clamp(22px, 2.4vw, 32px); font-weight: 400; }
-  .lede { color: var(--dim); margin-top: 10px; font-size: 16px; line-height: 1.45; max-width: 52em; }
+  h1 { font-size: clamp(28px, 3.4vw, 44px); font-weight: 400; letter-spacing: 0.02em; flex-shrink: 0; }
+  h2 { font-size: clamp(20px, 2.2vw, 30px); font-weight: 400; flex-shrink: 0; }
+  .lede { color: var(--dim); margin-top: 8px; font-size: 15px; line-height: 1.4; max-width: 52em; flex-shrink: 0; }
   .metrics {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 16px;
     margin-top: 28px;
+    flex-shrink: 0;
   }
   .metric { border-top: 1px solid #fff; padding-top: 14px; }
   .metric b {
@@ -163,19 +168,44 @@
     text-transform: uppercase;
     color: var(--dim);
   }
-  .grid2 { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 28px; min-height: 0; height: 100%; }
-  .grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .grid2 {
+    display: grid;
+    grid-template-columns: 0.82fr 1.18fr;
+    gap: 22px;
+    min-height: 0;
+    flex: 1 1 auto;
+    align-items: stretch;
+  }
+  .grid2.photo-left { grid-template-columns: 1.12fr 0.88fr; }
+  .grid2 > * {
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; flex-shrink: 0; }
   .card { border-top: 1px solid #fff; padding-top: 12px; }
   .card h3 { font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 8px; }
   .card p, .prose { color: #c8c8c8; font-size: 14px; line-height: 1.45; }
   .fig {
     border: 1px solid var(--line);
-    background: #080808;
+    background: #111;
     overflow: hidden;
     min-height: 0;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
   }
+  .fig.hero {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-top: 12px;
+  }
+  .fig.portrait { flex: 1.7 1 auto; }
   .fig img {
     width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
     height: 100%;
     object-fit: contain;
     object-position: center;
@@ -188,18 +218,21 @@
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--dim);
+    flex-shrink: 0;
   }
   .eq {
-    margin: 16px 0;
-    padding: 16px 18px;
+    margin: 10px 0;
+    padding: 10px 14px;
     border: 1px solid var(--line);
-    font-size: 18px;
+    font-size: 16px;
     overflow-x: auto;
+    flex-shrink: 0;
   }
   table {
     width: 100%;
     border-collapse: collapse;
     font-size: 14px;
+    flex-shrink: 0;
   }
   th, td { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: left; }
   th { color: var(--dim); font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; font-size: 11px; }
@@ -213,6 +246,7 @@
     letter-spacing: 0.2em;
     text-transform: uppercase;
     font-size: 11px;
+    flex-shrink: 0;
   }
   .playbtn:hover { background: #fff; color: #000; }
   #theater {
@@ -232,7 +266,8 @@
     .shell { grid-template-columns: 1fr; }
     nav { display: none; }
     .metrics, .grid3 { grid-template-columns: 1fr 1fr; }
-    .grid2 { grid-template-columns: 1fr; }
+    .grid2, .grid2.photo-left { grid-template-columns: 1fr; }
+    .grid2 .fig, .fig.hero { min-height: min(52vh, 620px); }
   }
 </style>
 </head>
@@ -314,7 +349,7 @@ const SLIDES = [
     <p class="kicker">Einleitung · Leitfrage</p>
     <h2>Ist ein funktionsfähiges Triebwerk an tausende Franken gebunden?</h2>
     <p class="lede">Ferrari vs. Ford Model T. Nicht maximale Effizienz, sondern Herstellbarkeit, Kosteneffizienz und Skalierbarkeit. COTS plus Eigenfertigung. Druckgasförderung statt Turbopumpe.</p>
-    <div class="fig" style="margin-top:22px;height:min(48vh,420px)"><img src="figures/raptor-iteration.png" alt="Raptor 1–3"></div>
+    <div class="fig hero"><img src="figures/raptor-iteration.png" alt="Raptor 1–3"></div>
     <p class="cap">Abb. 1 · Iteration Raptor — Vorbild für schnelle Hardware-Zyklen</p>`},
   { id:"kennzahlen", sec:"Einleitung", t:"Kennzahlen", html: `
     <h2>Was auf der Folie stehen muss.</h2>
@@ -332,22 +367,22 @@ const SLIDES = [
     </div>
     <p class="lede" style="margin-top:22px">Geometrie Marmot: L<sub>c</sub> 166.7 mm · D<sub>c</sub> 27.9 mm · D<sub>t</sub> 11.4 mm · D<sub>e</sub> 16.1 mm. Kühlung: C<sub>p</sub> Ethanol ≈ 2.43 kJ/(kg·K).</p>`},
   { id:"architekturen", sec:"Einleitung", t:"Drei Architekturen", html: `
-    <div class="grid3" style="height:100%">
+    <div class="grid3">
       <div class="card"><h3>01 Kaltgas</h3><p>Inertgas durch Ventil und Düse. Zuverlässig, aber I<sub>sp</sub> zu klein für Hauptantrieb.</p></div>
       <div class="card"><h3>02 Turbopumpe</h3><p>Massive Kammerdrücke, leichte Tanks. Präzisionsschaufeln — widerspricht Low-Cost.</p></div>
       <div class="card" style="border-top-color:var(--red)"><h3>03 Druckgas</h3><p>Inertgas presst Treibstoff aus dem Tank. Keine rotierenden Teile. Gewählt.</p></div>
     </div>
-    <div class="fig contain" style="margin-top:18px;height:min(46vh,380px)"><img src="figures/arch-druckgas.png" alt="Druckgasförderung"></div>
+    <div class="fig hero portrait"><img src="figures/arch-druckgas.png" alt="Druckgasförderung"></div>
     <p class="cap">Abb. 5–6 · Open Cycle vs. Druckgasförderung (O₂ · N₂ · Ethanol)</p>`},
   { id:"treibstoffe", sec:"Einleitung", t:"Treibstoffe", html: `
-    <h2>Propan-Gas → flüssiges Ethanol</h2>
-    <p class="lede">Bernoulli: Förderung nur wenn Leitungsdruck &gt; Kammerdruck. Gasregler 4 bar + 10 m Schlauch = Druck-Budget-Problem. Ethanol: inkompressibel, höhere volumetrische Energiedichte, Kühlmittel.</p>
-    <div class="eq" data-tex="I_{sp} = \\dfrac{F}{\\dot{m}} \\qquad \\dot{m} = \\rho \\, v \\, A"></div>
-    <div class="eq" data-tex="C_p \\approx 2.43\\,\\mathrm{kJ/(kg\\cdot K)} \\quad \\Delta T_{\\mathrm{EtOH}} \\approx 7\\,\\mathrm{K/s} \\quad \\Delta T_{\\mathrm{O_2}} \\approx 126\\,\\mathrm{K/s}"></div>
-    <div class="grid2" style="height:auto;margin-top:16px">
-      <div class="fig" style="height:240px"><img src="figures/emb-051.png" alt="Drucktank"></div>
+    <div class="grid2 photo-left">
+      <div class="fig portrait"><img src="figures/emb-051.png" alt="Drucktank"></div>
       <div>
-        <p class="card"><h3>Drucktank</h3><p>5-Liter-LKW-Luftbehälter, 15.5 bar zulässig, Betrieb 10 bar N₂ über Ethanol. Flammpunkt 12 °C → Stickstoffpolster, kein Luftgemisch im Tank.</p></div>
+        <h2>Propan-Gas → flüssiges Ethanol</h2>
+        <p class="lede">Bernoulli: Förderung nur wenn Leitungsdruck &gt; Kammerdruck. Gasregler 4 bar + 10 m Schlauch = Druck-Budget-Problem. Ethanol: inkompressibel, höhere volumetrische Energiedichte, Kühlmittel.</p>
+        <div class="eq" data-tex="I_{sp} = \\dfrac{F}{\\dot{m}} \\qquad \\dot{m} = \\rho \\, v \\, A"></div>
+        <div class="eq" data-tex="C_p \\approx 2.43\\,\\mathrm{kJ/(kg\\cdot K)} \\quad \\Delta T_{\\mathrm{EtOH}} \\approx 7\\,\\mathrm{K/s} \\quad \\Delta T_{\\mathrm{O_2}} \\approx 126\\,\\mathrm{K/s}"></div>
+        <p class="card"><h3>Drucktank</h3><p>5-Liter-LKW-Luftbehälter, 15.5 bar zulässig, Betrieb 10 bar N₂ über Ethanol. Flammpunkt 12 °C → Stickstoffpolster, kein Luftgemisch im Tank.</p></p>
       </div>
     </div>`},
   { id:"ventile", sec:"Ventile", t:"Ventile", html: `
@@ -372,7 +407,7 @@ const SLIDES = [
         <p class="lede">Nächste Version: digitale Wägezelle für eine Schubkurve.</p>
       </div>
       <div>
-        <div class="fig" style="height:78%"><img src="figures/messe-feder.png" alt="Messeinrichtung"></div>
+        <div class="fig"><img src="figures/messe-feder.png" alt="Messeinrichtung"></div>
         <p class="cap">Abb. 18 · Finale Messeinrichtung</p>
       </div>
     </div>`},
@@ -388,9 +423,9 @@ const SLIDES = [
         <p class="cap">Halsfläche, Expansionsverhältnis, charakteristische Länge</p>
       </div>
       <div>
-        <div class="fig" style="height:42%"><img src="figures/schweissen.png" alt="Schweissen Marmot"></div>
+        <div class="fig"><img src="figures/schweissen.png" alt="Schweissen Marmot"></div>
         <p class="cap">Abb. 19–21 · Rohr, Punktschweiss, Naht</p>
-        <div class="fig" style="height:42%;margin-top:12px"><img src="figures/marmot-fertigung.png" alt="Marmot Fertigung"></div>
+        <div class="fig portrait"><img src="figures/marmot-fertigung.png" alt="Marmot Fertigung"></div>
       </div>
     </div>`},
   { id:"regenerativ", sec:"Brennkammer", t:"Regenerativkühlung", html: `
@@ -399,11 +434,11 @@ const SLIDES = [
         <p class="kicker">Brennkammer · J · Julian Baumeler</p>
         <h2>Kühlmantel statt Schmelze</h2>
         <p class="lede">O₂/Propan &gt; 3457 °C. Stahl schmilzt ~1420–1460 °C. MG 4: Engine-rich, ~20 % Wandung abgetragen. Lösung: Ethanol durch den äusseren Mantel, dann Injektor — Wärme bleibt im Kreis.</p>
-        <div class="fig contain" style="height:48%;margin-top:14px"><img src="figures/regen-kuehlung.png" alt="Regenkühlung Schema"></div>
+        <div class="fig portrait"><img src="figures/regen-kuehlung.png" alt="Regenkühlung Schema"></div>
         <p class="cap">Abb. 34 · Schema Regenerativkühlung</p>
       </div>
       <div>
-        <div class="fig" style="height:85%"><img src="figures/buochs-stand.png" alt="Stand Buochs"></div>
+        <div class="fig"><img src="figures/buochs-stand.png" alt="Stand Buochs"></div>
         <p class="cap">Abb. 23 · Marmot auf dem Stand, Mirage-Verein Buochs</p>
       </div>
     </div>`},
@@ -472,7 +507,7 @@ const SLIDES = [
         <h2>MF 6 · Erster Schub</h2>
         <p class="lede">Sichtbarer Schub bei 50 %. Dann reisst die Gusseisen-Schweissnaht (Martensit). Ethanolstrahl auf den Drucktank — Flambieren. Danach: ein durchgehend gebogenes Stahlrohr, keine Naht in der Biegung.</p>
         ${clipBtn(5)}
-        <div class="fig" style="height:28%;margin-top:12px"><img src="figures/mf6-feuervogel.png" alt="Feuervogel"></div>
+        <div class="fig"><img src="figures/mf6-feuervogel.png" alt="Feuervogel"></div>
         <p class="cap">Abb. 38 · Zu viel Ethanol, Nachverbrennung an Luft</p>
       </div>
       <div class="fig"><img src="figures/mf6-schub.png" alt="MF 6 Schub"></div>
@@ -485,23 +520,29 @@ const SLIDES = [
         <div class="eq" data-tex="F = 24.12\\,\\mathrm{N} \\approx 2.46\\,\\mathrm{kg}"></div>
         ${clipBtn(6)}
       </div>
-      <div class="fig contain"><img src="figures/mf7-schub.png" alt="MF 7"></div>
+      <div class="fig portrait"><img src="figures/mf7-schub.png" alt="MF 7"></div>
     </div>`},
   { id:"kosten", sec:"Schluss", t:"Kosten", html: `
-    <h2>Kosten per Schubeinheit</h2>
-    <table>
-      <tr><th>Projekt</th><th>Infra</th><th>Triebwerk</th><th>Total</th><th>Schub</th><th>CHF / kg</th></tr>
-      <tr><td>EPFL ME401</td><td>—</td><td>—</td><td>~190’000</td><td>1’220 kg</td><td>155.7</td></tr>
-      <tr><td>Purdue Space Y</td><td>—</td><td>500</td><td>&gt;20’000</td><td>139 kg</td><td>143.9</td></tr>
-      <tr><td>BBZB · diese Arbeit</td><td>222</td><td>52</td><td>272</td><td>2.46 kg</td><td><b>110.6</b></td></tr>
-    </table>
-    <div style="margin-top:22px">
-      <div class="barrow"><span>BBZB</span><div class="bar"><i style="width:71%"></i></div><span>110.6</span></div>
-      <div class="barrow"><span>Purdue</span><div class="bar"><i style="width:92%"></i></div><span>143.9</span></div>
-      <div class="barrow"><span>EPFL</span><div class="bar"><i style="width:100%"></i></div><span>155.7</span></div>
-    </div>
-    <div class="fig contain" style="height:34%;margin-top:16px"><img src="figures/kosten.png" alt="Kostenplot"></div>
-    <p class="cap">Tabelle 3 · Diagramm 1 · Totalkosten vs. Schub</p>`},
+    <div class="grid2">
+      <div>
+        <h2>Kosten per Schubeinheit</h2>
+        <table>
+          <tr><th>Projekt</th><th>Infra</th><th>Triebwerk</th><th>Total</th><th>Schub</th><th>CHF / kg</th></tr>
+          <tr><td>EPFL ME401</td><td>—</td><td>—</td><td>~190’000</td><td>1’220 kg</td><td>155.7</td></tr>
+          <tr><td>Purdue Space Y</td><td>—</td><td>500</td><td>&gt;20’000</td><td>139 kg</td><td>143.9</td></tr>
+          <tr><td>BBZB · diese Arbeit</td><td>222</td><td>52</td><td>272</td><td>2.46 kg</td><td><b>110.6</b></td></tr>
+        </table>
+        <div style="margin-top:18px">
+          <div class="barrow"><span>BBZB</span><div class="bar"><i style="width:71%"></i></div><span>110.6</span></div>
+          <div class="barrow"><span>Purdue</span><div class="bar"><i style="width:92%"></i></div><span>143.9</span></div>
+          <div class="barrow"><span>EPFL</span><div class="bar"><i style="width:100%"></i></div><span>155.7</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="fig portrait"><img src="figures/kosten.png" alt="Kostenplot"></div>
+        <p class="cap">Tabelle 3 · Diagramm 1 · Totalkosten vs. Schub</p>
+      </div>
+    </div>`},
   { id:"schluss", sec:"Schluss", t:"Schluss", html: `
     <h2>Es geht. Iterativ.</h2>
     <p class="lede">Ein funktionsfähiges druckgasgefördertes Triebwerk aus Baumarkt und Werkstatt ist möglich. Fast jede Teilsystem — Ventile, Kammer, Kühlung, Messung, Werkstoff — musste nach dem Test neu gebaut werden. Das ist der Prozess, nicht der Fehler.</p>
