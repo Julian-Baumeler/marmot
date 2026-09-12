@@ -2,6 +2,8 @@
 
 Presentation companion for the Marmot engine tests: slides in `index.html`, figures, posters, and clip metadata.
 
+Deck figures always use `object-fit: contain` with a dark letterbox so photos are never cropped.
+
 Test videos (`media/*.mp4`) are **not stored in git**. In production, `server.py` streams them from S3 when the bucket env vars are set. See [media/README.md](media/README.md).
 
 ## Run locally
