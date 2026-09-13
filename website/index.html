@@ -262,12 +262,24 @@
   .stage { position: relative; min-height: 0; border: 1px solid var(--line); background: #000; }
   video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; image-orientation: from-image; }
   .katex { color: #fff; }
+  .figrow {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-top: 16px;
+  }
+  .figrow > div { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+  .figrow .fig { flex: 1 1 auto; min-height: 0; }
   @media (max-width: 980px) {
     .shell { grid-template-columns: 1fr; }
     nav { display: none; }
     .metrics, .grid3 { grid-template-columns: 1fr 1fr; }
     .grid2, .grid2.photo-left { grid-template-columns: 1fr; }
     .grid2 .fig, .fig.hero { min-height: min(52vh, 620px); }
+    .figrow { grid-template-columns: 1fr; }
+    .figrow .fig { min-height: min(38vh, 360px); }
   }
 </style>
 </head>
@@ -396,7 +408,21 @@ const SLIDES = [
       <tr><td>W / S</td><td>beide im Verhältnis</td><td>H</td><td>Homing</td></tr>
       <tr><td>1–0</td><td>10 % … 100 %</td><td>O</td><td>Voröffnung</td></tr>
     </table>
-    <p class="cap" style="margin-top:14px">Tabelle 1–2 · 50 % Öffnung = Schritt 120 / 80 % = 160</p>`},
+    <p class="cap" style="margin-top:14px">Tabelle 1–2 · 50 % Öffnung = Schritt 120 / 80 % = 160</p>
+    <div class="figrow">
+      <div>
+        <div class="fig"><img src="figures/emb-034.png" alt="Messing-Kugelhahn mit rotem Griff, daneben gedruckte Halter und Zahnrad"></div>
+        <p class="cap">Kugelhahn · Messing, mit gedruckten Haltern</p>
+      </div>
+      <div>
+        <div class="fig"><img src="figures/emb-036.png" alt="Zwei Schrittmotoren mit gedruckten Zahnrädern und Mikroschaltern"></div>
+        <p class="cap">Schrittmotor · Getriebe und Mikroschalter</p>
+      </div>
+      <div>
+        <div class="fig"><img src="figures/emb-038.png" alt="MKS TinyBee Steuerplatine mit Netzteil und beiden Ventilantrieben"></div>
+        <p class="cap">MKS TinyBee · Netzteil und beide Antriebe</p>
+      </div>
+    </div>`},
   { id:"schubmessen", sec:"Schubmessen", t:"Messeinrichtung", html: `
     <div class="grid2">
       <div>
