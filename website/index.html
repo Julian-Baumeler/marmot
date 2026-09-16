@@ -17,9 +17,19 @@
   body { background:var(--bg); color:var(--fg); font-family:"Helvetica Neue",Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
   button { font:inherit; color:inherit; background:none; border:0; cursor:pointer; }
   img, video { display:block; max-width:100%; }
-  .bar { position:fixed; top:0; left:0; right:0; z-index:21; display:flex; justify-content:space-between; align-items:baseline; padding:14px 22px; color:var(--dim); background:linear-gradient(#000c,#0000); }
-  .brand { display:flex; align-items:baseline; gap:16px; min-width:0; text-shadow:0 1px 8px #000c; }
-  .brand-title { font-size:15px; letter-spacing:.12em; text-transform:uppercase; color:#fff; white-space:nowrap; }
+  .bar {
+    position:fixed; top:0; left:0; right:0; z-index:21;
+    height:64px; padding:0 22px;
+    display:flex; justify-content:space-between; align-items:center;
+    color:var(--dim); background:linear-gradient(#000c,#0000);
+    flex-shrink:0;
+  }
+  .brand { display:flex; align-items:center; gap:16px; min-width:0; text-shadow:0 1px 8px #000c; }
+  .brand-title {
+    font-size:15px; letter-spacing:.12em; text-transform:uppercase; color:#fff; white-space:nowrap;
+    cursor:pointer;
+  }
+  .brand-title:hover { color:#fff; }
   .brand-names { font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:#bbb; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .iconbtn {
     box-sizing:border-box;
@@ -128,7 +138,7 @@
   body.reader #reader { display:block; }
   #pdf-pages {
     display:flex; flex-direction:column; align-items:center;
-    gap:20px; padding:48px 0 80px;
+    gap:20px; padding:64px 0 80px;
   }
   #pdf-pages canvas { display:block; width:min(980px,92vw); height:auto; background:#fff; }
   #view3d {
@@ -137,7 +147,7 @@
   }
   body.view3d #view3d { display:block; }
   #view3d iframe {
-    position:absolute; inset:0; top:48px; width:100%; height:calc(100% - 48px);
+    position:absolute; inset:0; top:64px; width:100%; height:calc(100% - 64px);
     display:block; border:0; background:#0a0a0a;
   }
   @media (max-width:900px) {
@@ -151,7 +161,7 @@
 <body>
 <div class="bar">
   <div class="brand">
-    <span class="brand-title">Marmot Engine V2</span>
+    <button type="button" class="brand-title" id="btn-home" aria-label="Homepage">Marmot Engine V2</button>
     <span class="brand-names">Julian Baumeler · Mateusz Wnuk · Patrick Zaugg</span>
   </div>
   <div class="bar-actions">
@@ -401,6 +411,12 @@ btnCut.onclick = () => {
   document.body.classList.toggle("cut");
   syncCut();
 };
+const goHome = () => {
+  document.body.classList.remove("reader", "view3d", "cut");
+  paintPdfBtn();
+  if (location.search || location.hash) history.replaceState(null, "", location.pathname || "/");
+};
+document.getElementById("btn-home").onclick = goHome;
 document.getElementById("btn-pdf").onclick = openPdf;
 btn3d.onclick = open3d;
 window.addEventListener("message", (e) => {
