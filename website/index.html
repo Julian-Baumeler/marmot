@@ -177,14 +177,14 @@
 </div>
 
 <header class="hero" id="top">
-  <video id="vid-a" class="on" autoplay muted playsinline preload="auto" poster="posters/06-mf-6.jpg">
-    <source src="media/06-mf-6.mp4" type="video/mp4">
+  <video id="vid-a" class="on" autoplay muted playsinline preload="auto" poster="posters/hero-mg4.jpg">
+    <source src="media/hero-mg4.mp4?v=1" type="video/mp4">
   </video>
   <video id="vid-b" muted playsinline preload="auto"></video>
   <div class="caption-stage">
     <div class="hero-copy on" id="copy-a">
-      <p class="who">MF 6</p>
-      <h1>First visible thrust at half valve. Marmot holds.</h1>
+      <p class="who">MG 4</p>
+      <h1>Uncooled steel. Engine-rich. The chamber wall melts.</h1>
     </div>
     <div class="hero-copy" id="copy-b">
       <p class="who"></p>
@@ -215,15 +215,33 @@ const vidA = document.getElementById("vid-a");
 const vidB = document.getElementById("vid-b");
 let hero = vidA;
 const HERO_PLAYLIST = [
-  { file: "media/01-yg-1.mp4", kicker: "YG 1", line: "Minimaltest." },
-  { file: "media/02-yg-2.mp4", kicker: "YG 2", line: "First remote valves." },
-  { file: "media/03-mg-3.mp4", kicker: "MG 3", line: "Steel chamber at the limit. It glows." },
-  { file: "media/04-mg-4.mp4", kicker: "MG 4", line: "Uncooled steel. Engine-rich. The chamber wall melts." },
-  { file: "media/05-mf-5.mp4", kicker: "MF 5", line: "Ethanol. The fittings leak. The stand burns." },
-  { file: "media/06-mf-6.mp4", kicker: "MF 6", line: "First visible thrust at half valve. Marmot holds." },
-  { file: "media/07-mf-7.mp4", kicker: "MF 7", line: "Bent steel feed. Clean burn. 24.12 N · 2.46 kg." },
+  {
+    file: "media/hero-mg4.mp4?v=1",
+    kicker: "MG 4",
+    line: "Uncooled steel. Engine-rich. The chamber wall melts.",
+  },
+  {
+    file: "media/06-mf-6a.mp4?v=1",
+    kicker: "MF 6 · First thrust",
+    line: "First visible thrust at half valve. Marmot holds.",
+  },
+  {
+    file: "media/06-mf-6b.mp4?v=30s",
+    kicker: "MF 6 · Too much ethanol",
+    line: "The weld fails. Ethanol dumps. The tank catches fire.",
+  },
+  {
+    file: "media/06-mf-6c.mp4?v=1",
+    kicker: "MF 6 · Pulsejet",
+    line: "Bonus: a pulsejet-style burn, not the rocket plume.",
+  },
+  {
+    file: "media/07-mf-7.mp4?v=15s",
+    kicker: "MF 7",
+    line: "Bent steel feed. Clean burn. 24.12 N · 2.46 kg.",
+  },
 ];
-let heroI = 5;
+let heroI = 0;
 const copyA = document.getElementById("copy-a");
 const copyB = document.getElementById("copy-b");
 let copy = copyA;
