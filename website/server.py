@@ -4,6 +4,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from http import HTTPStatus
 import os
 import re
+import socket
 import sys
 from urllib.parse import unquote, urlparse
 
@@ -45,8 +46,9 @@ class Handler(SimpleHTTPRequestHandler):
 
     def end_headers(self):
         self.send_header("Accept-Ranges", "bytes")
-        if self.path.split("?", 1)[0].endswith(".mp4"):
-            self.send_header("Cache-Control", "public, max-age=86400")
+        path = self.path.split("?", 1)[0]
+        if path.endswith((".mp4", ".html", ".js", ".css")):
+            self.send_header("Cache-Control", "no-store")
         super().end_headers()
 
     def _parse_range(self, size):
@@ -70,9 +72,16 @@ class Handler(SimpleHTTPRequestHandler):
             status = HTTPStatus.PARTIAL_CONTENT
         return start, end, status
 
+    def _rewrite_slides(self):
+        parsed = urlparse(self.path)
+        if parsed.path in ("/slides", "/slides/"):
+            self.path = "/slides.html" + (("?" + parsed.query) if parsed.query else "")
+
     def do_GET(self):
+        self._rewrite_slides()
         path = urlparse(self.path).path
-        if S3_BUCKET and path.startswith("/media/") and path.endswith(".mp4"):
+        local = self.translate_path(self.path)
+        if S3_BUCKET and path.startswith("/media/") and path.endswith(".mp4") and not os.path.isfile(local):
             key = unquote(path.lstrip("/"))
             try:
                 head = s3().head_object(Bucket=S3_BUCKET, Key=key)
@@ -114,6 +123,7 @@ class Handler(SimpleHTTPRequestHandler):
         super().do_GET()
 
     def send_head(self):
+        self._rewrite_slides()
         path = self.translate_path(self.path)
         if os.path.isdir(path):
             return super().send_head()
@@ -173,11 +183,23 @@ class Handler(SimpleHTTPRequestHandler):
         sys.stderr.write("%s - %s\n" % (self.address_string(), fmt % args))
 
 
+class DualStackServer(ThreadingHTTPServer):
+    address_family = socket.AF_INET6
+
+    def server_bind(self):
+        self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
+        super().server_bind()
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT") or (sys.argv[1] if len(sys.argv) > 1 else "8765"))
-    host = os.environ.get("HOST", "0.0.0.0")
-    httpd = ThreadingHTTPServer((host, port), Handler)
-    print(f"http://{host}:{port}/ s3={bool(S3_BUCKET)}", flush=True)
+    if os.environ.get("PORT"):
+        host = os.environ.get("HOST", "0.0.0.0")
+        httpd = ThreadingHTTPServer((host, port), Handler)
+    else:
+        host = os.environ.get("HOST", "::")
+        httpd = DualStackServer((host, port), Handler)
+    print(f"http://127.0.0.1:{port}/ s3={bool(S3_BUCKET)}", flush=True)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

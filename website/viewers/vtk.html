@@ -1,0 +1,260 @@
+  <!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="_split.css" />
+<style>
+#legend {
+  display: none;
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 4;
+  background: #000c;
+  padding: 10px 12px;
+  color: #fff;
+  font: 12px/1.45 Helvetica, Arial, sans-serif;
+  pointer-events: none;
+}
+#legend.on { display: block; }
+#legend .row { display: flex; align-items: center; gap: 8px; margin: 3px 0; }
+#legend i {
+  width: 14px; height: 14px; display: block; flex: 0 0 14px;
+  border: 1px solid #fff4;
+}
+#copied {
+  display: none;
+  position: absolute;
+  top: 42px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  min-width: 280px;
+  background: #111e;
+  color: #fff;
+  font: 13px/1.45 ui-monospace, Menlo, monospace;
+  white-space: pre;
+  padding: 12px 14px;
+  border: 1px solid #e10600;
+}
+#copied.show { display: block; }
+</style>
+</head>
+<body>
+<div class="pane" style="position:absolute;inset:0">
+  <div id="host" style="position:absolute;inset:0"></div>
+  <div id="legend"></div>
+  <div id="copied"></div>
+</div>
+<script src="../section.js"></script>
+<script src="engine2-data.js"></script>
+<script type="module">
+import {
+  vtkFullScreenRenderWindow, vtkActor, vtkMapper, vtkPolyData, vtkPoints,
+} from "../vendor/vtk/vtk-stl.js";
+
+const data = await loadEngine2();
+
+function polyUnindexed(pos) {
+  const nVerts = pos.length / 3;
+  const nTris = nVerts / 3;
+  const points = vtkPoints.newInstance();
+  points.setData(pos, 3);
+  const cells = new Uint32Array(nTris * 4);
+  for (let i = 0; i < nTris; i++) {
+    cells[i * 4] = 3;
+    cells[i * 4 + 1] = i * 3;
+    cells[i * 4 + 2] = i * 3 + 1;
+    cells[i * 4 + 3] = i * 3 + 2;
+  }
+  const pd = vtkPolyData.newInstance();
+  pd.setPoints(points);
+  pd.getPolys().setData(cells);
+  return pd;
+}
+function actor(pd, color) {
+  const mapper = vtkMapper.newInstance();
+  mapper.setInputData(pd);
+  const a = vtkActor.newInstance();
+  a.setMapper(mapper);
+  a.getProperty().setColor(color[0], color[1], color[2]);
+  if (a.getProperty().setBackfaceCulling) a.getProperty().setBackfaceCulling(false);
+  return a;
+}
+
+const fullWin = vtkFullScreenRenderWindow.newInstance({
+  rootContainer: document.getElementById("host"),
+  background: [0.06, 0.06, 0.06],
+  controllerVisibility: false,
+});
+if (fullWin.setControllerVisibility) fullWin.setControllerVisibility(false);
+if (fullWin.removeController) try { fullWin.removeController(); } catch (e) {}
+const rw = fullWin.getRenderWindow();
+const ren = fullWin.getRenderer();
+const fullA = actor(polyUnindexed(data.positions), [0.78, 0.78, 0.8]);
+ren.addActor(fullA);
+const cutActors = (data.cutParts || []).map((p) => {
+  const a = actor(polyUnindexed(p.positions), p.color);
+  a.setVisibility(false);
+  ren.addActor(a);
+  return a;
+});
+const legend = document.getElementById("legend");
+legend.innerHTML = (data.cutParts || []).map((p) => {
+  const hex = p.color.map((c) => Math.round(c * 255).toString(16).padStart(2, "0")).join("");
+  return `<div class="row"><i style="background:#${hex}"></i>${p.label}</div>`;
+}).join("");
+
+const cam = ren.getActiveCamera();
+cam.setPosition(data.radius * -1.43, data.radius * -0.76, data.radius * 0.35, false);
+cam.setFocalPoint(data.radius * -0.08, data.radius * 0.12, -data.radius * 0.17);
+cam.setViewUp(0, 0, 1);
+if (cam.setViewAngle) cam.setViewAngle(data.fov * 180 / Math.PI);
+ren.resetCameraClippingRange();
+rw.render();
+
+const p0 = cam.getPosition();
+const f0 = cam.getFocalPoint();
+let lastAz = Math.atan2(p0[1] - f0[1], p0[0] - f0[0]);
+function keepPipeUp() {
+  const f = cam.getFocalPoint();
+  const p = cam.getPosition();
+  const dx = p[0] - f[0], dy = p[1] - f[1], dz = p[2] - f[2];
+  const r = Math.hypot(dx, dy, dz) || 1;
+  const rxy = Math.hypot(dx, dy);
+  if (rxy > r * 0.04) lastAz = Math.atan2(dy, dx);
+  const maxElev = 1.22;
+  let elev = Math.atan2(dz, Math.max(rxy, 1e-8));
+  if (elev < 0) elev = 0;
+  if (elev > maxElev) elev = maxElev;
+  const rrxy = Math.cos(elev) * r;
+  cam.setPosition(
+    f[0] + Math.cos(lastAz) * rrxy,
+    f[1] + Math.sin(lastAz) * rrxy,
+    f[2] + Math.sin(elev) * r,
+    false
+  );
+  cam.setFocalPoint(f[0], f[1], f[2]);
+  cam.setViewUp(0, 0, 1);
+}
+const irenLock = fullWin.getInteractor();
+if (irenLock.onAnimation) irenLock.onAnimation(() => keepPipeUp());
+let cutOn = false;
+watchCut((on) => {
+  cutOn = on;
+  fullA.setVisibility(!on);
+  cutActors.forEach((a) => a.setVisibility(on));
+  legend.classList.toggle("on", on);
+  rw.render();
+});
+
+function hitTri(orig, dir, a, b, c) {
+  const eps = 1e-8;
+  const e1 = [b[0]-a[0], b[1]-a[1], b[2]-a[2]];
+  const e2 = [c[0]-a[0], c[1]-a[1], c[2]-a[2]];
+  const p = [dir[1]*e2[2]-dir[2]*e2[1], dir[2]*e2[0]-dir[0]*e2[2], dir[0]*e2[1]-dir[1]*e2[0]];
+  const det = e1[0]*p[0]+e1[1]*p[1]+e1[2]*p[2];
+  if (Math.abs(det) < eps) return null;
+  const inv = 1 / det;
+  const tvec = [orig[0]-a[0], orig[1]-a[1], orig[2]-a[2]];
+  const u = (tvec[0]*p[0]+tvec[1]*p[1]+tvec[2]*p[2]) * inv;
+  if (u < 0 || u > 1) return null;
+  const q = [tvec[1]*e1[2]-tvec[2]*e1[1], tvec[2]*e1[0]-tvec[0]*e1[2], tvec[0]*e1[1]-tvec[1]*e1[0]];
+  const v = (dir[0]*q[0]+dir[1]*q[1]+dir[2]*q[2]) * inv;
+  if (v < 0 || u + v > 1) return null;
+  const t = (e2[0]*q[0]+e2[1]*q[1]+e2[2]*q[2]) * inv;
+  if (t < eps) return null;
+  return t;
+}
+
+function pickParts() {
+  if (cutOn && data.cutParts) return data.cutParts;
+  return [{ id: "full", label: "full engine", positions: data.positions }];
+}
+
+function closestHit(orig, dir) {
+  let best = null;
+  pickParts().forEach((part) => {
+    const pos = part.positions;
+    for (let i = 0; i < pos.length; i += 9) {
+      const t = hitTri(orig, dir,
+        [pos[i], pos[i+1], pos[i+2]],
+        [pos[i+3], pos[i+4], pos[i+5]],
+        [pos[i+6], pos[i+7], pos[i+8]]);
+      if (t != null && (!best || t < best.t)) {
+        best = {
+          t, part,
+          p: [orig[0]+dir[0]*t, orig[1]+dir[1]*t, orig[2]+dir[2]*t],
+        };
+      }
+    }
+  });
+  return best;
+}
+
+const copied = document.getElementById("copied");
+const oc = data.originCenter || [0, 0, 0];
+function copyText(text) {
+  try { parent.postMessage({ type: "pick-copy", text }, "*"); } catch (e) {}
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).catch(execCopy);
+  } else execCopy();
+  function execCopy() {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.left = "0";
+    ta.style.top = "0";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try { document.execCommand("copy"); } catch (e) {}
+    ta.remove();
+  }
+}
+function showPick(text) {
+  copied.textContent = text;
+  copied.classList.add("show");
+  copyText(text.replace(/\n\(copied\)\s*$/, "").replace(/\n\(no hit\)\s*$/, ""));
+}
+function copyPick(hit) {
+  const x = hit.p[0] + oc[0], y = hit.p[1] + oc[1], z = hit.p[2] + oc[2];
+  const r = Math.hypot(y, z);
+  showPick([
+    "part: " + hit.part.label,
+    "id: " + hit.part.id,
+    "xyz: " + x.toFixed(3) + "  " + y.toFixed(3) + "  " + z.toFixed(3),
+    "r: " + r.toFixed(3),
+    "(copied)",
+  ].join("\n"));
+}
+
+const iren = fullWin.getInteractor();
+const view = iren.getView() || (fullWin.getApiSpecificRenderWindow && fullWin.getApiSpecificRenderWindow()) || rw.getViews()[0];
+let press = null;
+iren.onLeftButtonPress((ev) => {
+  press = { x: ev.position.x, y: ev.position.y };
+});
+iren.onLeftButtonRelease((ev) => {
+  if (!press) return;
+  const pos = ev.position || press;
+  const dx = pos.x - press.x, dy = pos.y - press.y;
+  press = null;
+  if (dx * dx + dy * dy > 64) return;
+  if (!view || !view.displayToWorld) {
+    showPick("(pick failed: no displayToWorld)");
+    return;
+  }
+  const p0 = view.displayToWorld(pos.x, pos.y, 0, ren);
+  const p1 = view.displayToWorld(pos.x, pos.y, 1, ren);
+  const d = [p1[0]-p0[0], p1[1]-p0[1], p1[2]-p0[2]];
+  const len = Math.hypot(d[0], d[1], d[2]) || 1;
+  d[0] /= len; d[1] /= len; d[2] /= len;
+  const hit = closestHit(p0, d);
+  if (hit) copyPick(hit);
+  else showPick("(no hit)");
+});
+</script>
+</body>
+</html>

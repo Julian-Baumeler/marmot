@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>JPSM · Raketentriebwerk</title>
+<link rel="icon" href="data:,">
+<style>
+  :root { --bg:#000; --fg:#fff; --dim:#8a8a8a; --line:#222; --red:#e10600; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html, body {
+    height:100%; height:100dvh; overflow:hidden;
+    background:var(--bg); color:var(--fg);
+    font-family:"Helvetica Neue", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .deck { position:relative; width:100%; height:100%; }
+  .slide {
+    display:none;
+    position:absolute; inset:0;
+    padding:48px 56px 56px;
+    flex-direction:column;
+  }
+  .slide.on { display:flex; }
+  .title-slide { align-items:center; justify-content:center; text-align:center; }
+  .title-slide h1 {
+    font-size:clamp(48px, 8vw, 120px);
+    font-weight:700;
+    letter-spacing:.02em;
+    line-height:1.05;
+  }
+  .kicker {
+    font-size:12px; letter-spacing:.28em; text-transform:uppercase;
+    color:var(--dim); margin-bottom:14px;
+  }
+  h2 { font-size:clamp(28px, 3.4vw, 44px); font-weight:600; letter-spacing:.01em; }
+  .lede { color:var(--dim); margin-top:12px; font-size:18px; line-height:1.45; max-width:54em; }
+  .eq {
+    margin:18px 0 16px;
+    font: 20px/1.4 ui-monospace, Menlo, monospace;
+    color:#ddd;
+  }
+  table { border-collapse:collapse; margin-top:8px; width:min(920px, 100%); }
+  th, td { border-bottom:1px solid var(--line); padding:8px 14px 8px 0; text-align:left; font-size:15px; }
+  th { color:var(--dim); font-weight:500; letter-spacing:.08em; text-transform:uppercase; font-size:11px; }
+  .cap { color:#666; font-size:12px; letter-spacing:.04em; margin-top:8px; }
+  .figrow {
+    display:grid;
+    grid-template-columns:repeat(3, minmax(0, 1fr));
+    gap:16px;
+    flex:1 1 auto;
+    min-height:0;
+    margin-top:18px;
+  }
+  .figrow > div { min-width:0; min-height:0; display:flex; flex-direction:column; }
+  .fig { flex:1 1 auto; min-height:0; background:#000; overflow:hidden; }
+  .fig img { width:100%; height:100%; object-fit:contain; }
+  .bar-actions {
+    position:fixed; top:14px; right:22px; z-index:21;
+    display:flex; gap:8px;
+  }
+  .iconbtn {
+    box-sizing:border-box;
+    width:48px; height:36px; padding:0;
+    border:1px solid #fff4;
+    letter-spacing:.2em; font-size:10px; color:#ccc;
+    display:grid; place-items:center;
+    background:none; font:inherit; cursor:pointer; text-decoration:none;
+  }
+  .iconbtn:hover { color:#fff; border-color:#fff; }
+  .iconbtn svg { width:16px; height:16px; }
+  .iconbtn .i-fs { display:block; }
+  .iconbtn .x { display:none; }
+  body.fs .bar-actions { display:none; }
+  @media (max-width:980px) {
+    .slide { padding:28px 22px 48px; }
+    .figrow { grid-template-columns:1fr; }
+    .figrow .fig { min-height:min(22vh, 180px); }
+    .title-slide h1 { font-size:clamp(36px, 12vw, 72px); }
+  }
+</style>
+</head>
+<body>
+<div class="bar-actions">
+  <button type="button" class="iconbtn" id="btn-full" aria-label="Fullscreen">
+    <svg class="i-fs" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"/></svg>
+    <svg class="x" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+  </button>
+  <a class="iconbtn" id="btn-exit" href="/" aria-label="Exit presentation">
+    <svg class="x" style="display:block" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+  </a>
+</div>
+<div class="deck" id="deck">
+  <section class="slide title-slide on" data-title="Leitfrage">
+    <h1>Leitfrage</h1>
+  </section>
+  <section class="slide title-slide" data-title="Einleitung">
+    <h1>Einleitung</h1>
+  </section>
+  <section class="slide" data-title="Ventile">
+    <p class="kicker">Ventile · M · Mateusz Wnuk</p>
+    <h2>Elektronische Kugelhähne</h2>
+    <p class="lede">MKS TinyBee · FluidNC · Homing über Mikroschalter. Totbereich 28 Schritte (Treibstoff) / 40 Schritte (O₂). 200 Schritte = 90° offen. Kreissegmentfläche:</p>
+    <div class="eq">A(h) = r² arccos(1 − h/r) − (r − h) √(2rh − h²)</div>
+    <table>
+      <tr><th>Taste</th><th>Funktion</th><th>Taste</th><th>Funktion</th></tr>
+      <tr><td>X / C</td><td>Treibstoff ±1</td><td>B / N</td><td>O₂ ±1</td></tr>
+      <tr><td>W / S</td><td>beide im Verhältnis</td><td>H</td><td>Homing</td></tr>
+      <tr><td>1–0</td><td>10 % … 100 %</td><td>O</td><td>Voröffnung</td></tr>
+    </table>
+    <p class="cap">Tabelle 1–2 · 50 % Öffnung = Schritt 120 / 80 % = 160</p>
+    <div class="figrow">
+      <div>
+        <div class="fig"><img src="figures/emb-034.png" alt="Messing-Kugelhahn mit rotem Griff, daneben gedruckte Halter und Zahnrad"></div>
+        <p class="cap">Kugelhahn · Messing, mit gedruckten Haltern</p>
+      </div>
+      <div>
+        <div class="fig"><img src="figures/emb-036.png" alt="Zwei Schrittmotoren mit gedruckten Zahnrädern und Mikroschaltern"></div>
+        <p class="cap">Schrittmotor · Getriebe und Mikroschalter</p>
+      </div>
+      <div>
+        <div class="fig"><img src="figures/emb-038.png" alt="MKS TinyBee Steuerplatine mit Netzteil und beiden Ventilantrieben"></div>
+        <p class="cap">MKS TinyBee · Netzteil und beide Antriebe</p>
+      </div>
+    </div>
+  </section>
+  <section class="slide title-slide" data-title="Schubmessen">
+    <h1>Schubmessen</h1>
+  </section>
+  <section class="slide title-slide" data-title="Brennkammer">
+    <h1>Brennkammer</h1>
+  </section>
+  <section class="slide title-slide" data-title="Tests">
+    <h1>Tests</h1>
+  </section>
+  <section class="slide title-slide" data-title="Schluss">
+    <h1>Schluss</h1>
+  </section>
+</div>
+<script>
+const slides = [...document.querySelectorAll(".slide")];
+let i = 0;
+const go = (n) => {
+  i = (n + slides.length) % slides.length;
+  slides.forEach((s, k) => s.classList.toggle("on", k === i));
+  history.replaceState(null, "", "#s" + (i + 1));
+};
+const fromHash = () => {
+  const m = /^#s(\d+)$/.exec(location.hash);
+  if (m) go(Math.max(0, Math.min(slides.length - 1, parseInt(m[1], 10) - 1)));
+};
+fromHash();
+addEventListener("keydown", (e) => {
+  if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") { e.preventDefault(); go(i + 1); }
+  if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); go(i - 1); }
+  if (e.key === "Home") { e.preventDefault(); go(0); }
+  if (e.key === "End") { e.preventDefault(); go(slides.length - 1); }
+});
+document.getElementById("deck").addEventListener("click", (e) => {
+  if (e.target.closest("a, button")) return;
+  go(e.clientX > innerWidth / 2 ? i + 1 : i - 1);
+});
+const btnFull = document.getElementById("btn-full");
+const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
+const paintFs = () => {
+  const on = !!fsEl();
+  document.body.classList.toggle("fs", on);
+  btnFull.setAttribute("aria-label", on ? "Exit fullscreen" : "Fullscreen");
+};
+btnFull.addEventListener("click", (e) => {
+  e.stopPropagation();
+  if (fsEl()) {
+    (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+  } else {
+    const el = document.documentElement;
+    (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+  }
+});
+addEventListener("fullscreenchange", paintFs);
+addEventListener("webkitfullscreenchange", paintFs);
+</script>
+</body>
+</html>

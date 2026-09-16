@@ -4,199 +4,435 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Raketentriebwerk · IDPA 1383</title>
+<link rel="icon" href="data:,">
 <style>
   :root { --bg:#000; --fg:#fff; --dim:#8a8a8a; --line:#222; }
   * { box-sizing:border-box; margin:0; padding:0; }
-  html { scroll-behavior:smooth; }
+  html, body {
+    height: 100%;
+    height: 100dvh;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
   body { background:var(--bg); color:var(--fg); font-family:"Helvetica Neue",Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
   button { font:inherit; color:inherit; background:none; border:0; cursor:pointer; }
   img, video { display:block; max-width:100%; }
-  .bar { position:fixed; top:0; left:0; right:0; z-index:11; display:flex; justify-content:space-between; padding:14px 22px; font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--dim); background:linear-gradient(#000c,#0000); }
-  .iconbtn { border:1px solid #fff4; padding:6px 10px; letter-spacing:.2em; font-size:10px; color:#ccc; }
+  .bar { position:fixed; top:0; left:0; right:0; z-index:21; display:flex; justify-content:space-between; align-items:baseline; padding:14px 22px; color:var(--dim); background:linear-gradient(#000c,#0000); }
+  .brand { display:flex; align-items:baseline; gap:16px; min-width:0; text-shadow:0 1px 8px #000c; }
+  .brand-title { font-size:15px; letter-spacing:.12em; text-transform:uppercase; color:#fff; white-space:nowrap; }
+  .brand-names { font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:#bbb; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .iconbtn {
+    box-sizing:border-box;
+    width:48px; height:36px; padding:0;
+    border:1px solid #fff4;
+    letter-spacing:.2em; font-size:10px; color:#ccc;
+    display:grid; place-items:center;
+  }
+  .bar-actions { display:flex; gap:8px; flex-shrink:0; }
   .iconbtn:hover { color:#fff; border-color:#fff; }
-  .scrim { display:none; position:fixed; inset:0; background:#0008; z-index:12; }
-  body.navopen .scrim { display:block; }
-  nav { position:fixed; inset:0 auto 0 0; width:260px; background:#000; border-right:1px solid var(--line); padding:22px 16px; z-index:13; transform:translateX(-105%); transition:transform .16s; }
-  body.navopen nav { transform:none; }
-  nav a { display:block; padding:8px; color:var(--dim); text-decoration:none; font-size:12px; letter-spacing:.06em; }
-  nav a:hover { color:#fff; }
-  .hero { position:relative; height:100dvh; overflow:hidden; display:grid; place-items:end stretch; }
-  .hero video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
-  .hero-shade { position:absolute; inset:0; background:linear-gradient(to top,#000e 0%,#0004 50%,#0006 100%); }
-  .hero-copy { position:relative; padding:0 40px 56px; max-width:1100px; }
-  .hero-copy .who { font-size:11px; letter-spacing:.32em; text-transform:uppercase; color:#bbb; margin-bottom:16px; }
-  h1 { font-size:clamp(26px,4vw,50px); font-weight:400; letter-spacing:.02em; line-height:1.15; }
-  .sub { margin-top:14px; color:#aaa; font-size:14px; letter-spacing:.08em; }
-  .mute { position:absolute; right:22px; bottom:22px; z-index:2; border:1px solid #fff5; padding:6px 10px; font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:#ccc; }
-  main { padding:0 40px 80px; max-width:1100px; }
-  section { padding:64px 0 8px; border-top:1px solid var(--line); }
-  h2 { font-size:clamp(22px,2.4vw,32px); font-weight:400; }
-  .lede { color:var(--dim); margin-top:10px; font-size:16px; line-height:1.45; max-width:40em; }
-  .metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; margin-top:28px; }
-  .metric { border-top:1px solid #fff; padding-top:12px; }
-  .metric b { display:block; font-size:clamp(22px,2.6vw,36px); font-weight:200; }
-  .metric span { display:block; margin-top:8px; font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--dim); }
-  .row3 { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin-top:24px; }
-  .card { border-top:1px solid #fff; padding-top:12px; }
-  .card h3 { font-size:12px; letter-spacing:.2em; text-transform:uppercase; margin-bottom:8px; }
-  .card p { color:#c8c8c8; font-size:14px; line-height:1.4; }
-  .grid7 { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:8px; margin-top:24px; }
-  .clip { min-width:0; text-align:left; color:inherit; }
-  .clip img { width:100%; aspect-ratio:9/16; object-fit:cover; border:1px solid var(--line); }
-  .clip span { display:block; margin-top:8px; font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--dim); }
-  .fig { border:1px solid var(--line); background:#111; margin-top:20px; }
-  .fig img { width:100%; max-height:420px; object-fit:contain; margin:0 auto; }
-  .cap { margin-top:8px; font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--dim); }
-  table { width:100%; border-collapse:collapse; font-size:14px; margin-top:18px; }
-  th,td { border-bottom:1px solid var(--line); padding:8px 10px; text-align:left; }
-  th { color:var(--dim); font-weight:500; letter-spacing:.16em; text-transform:uppercase; font-size:11px; }
-  #theater,#reader { display:none; position:fixed; inset:0; background:#000; z-index:20; padding:18px 28px 14px; grid-template-rows:auto minmax(0,1fr) auto; }
-  body.theater #theater, body.reader #reader { display:grid; }
-  body.theater, body.reader { overflow:hidden; }
-  .stage { position:relative; min-height:0; border:1px solid var(--line); background:#000; }
-  #theater video { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
-  #reader iframe { width:100%; height:100%; border:0; background:#111; }
-  .ov { display:flex; justify-content:space-between; font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--dim); }
-  .rule { height:1px; background:var(--line); margin:14px 0 18px; }
+  .iconbtn .x { display:none; width:16px; height:16px; }
+  body.reader #btn-pdf,
+  body.view3d #btn-3d { color:#e10600; border-color:#e10600; }
+  body.reader #btn-pdf:hover,
+  body.view3d #btn-3d:hover { color:#ff2a22; border-color:#ff2a22; }
+  body.reader #btn-pdf .lbl,
+  body.view3d #btn-3d .lbl { display:none; }
+  body.reader #btn-pdf .x,
+  body.view3d #btn-3d .x { display:block; }
+  #btn-cut {
+    display:none;
+    position:absolute;
+    left:50%;
+    bottom:28px;
+    z-index:5;
+    transform:translateX(-50%);
+    width:auto;
+    min-width:168px;
+    height:40px;
+    padding:0 22px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    font-size:11px;
+  }
+  body.view3d #btn-cut { display:grid; }
+  body.view3d.cut #btn-cut { color:#e10600; border-color:#e10600; }
+  .hero { position:fixed; inset:0; overflow:hidden; }
+  .hero video {
+    position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+    transform:translateX(0); z-index:0;
+    transition: transform .55s cubic-bezier(.4,0,.2,1);
+  }
+  .hero video.on { z-index:1; }
+  .caption-stage {
+    position:absolute; left:0; right:0; bottom:0; height:42%;
+    overflow:hidden; pointer-events:none; z-index:2;
+  }
+  .hero-copy {
+    position:absolute; left:40px; bottom:36px; right:110px;
+    text-shadow: 0 1px 12px #000c;
+    transform:translateX(0);
+    opacity:0;
+    transition: transform .55s cubic-bezier(.4,0,.2,1);
+  }
+  .hero-copy.on,
+  .hero-copy.from-right,
+  .hero-copy.from-left,
+  .hero-copy.to-right,
+  .hero-copy.to-left { opacity:1; }
+  .hero video.from-right { transform:translateX(100%); }
+  .hero video.from-left { transform:translateX(-100%); }
+  .hero video.to-right { transform:translateX(100%); }
+  .hero video.to-left { transform:translateX(-100%); }
+  .hero-copy.from-right, .hero-copy.to-right { transform:translateX(100vw); }
+  .hero-copy.from-left, .hero-copy.to-left { transform:translateX(-100vw); }
+  .hero-copy .who {
+    font-size:11px; letter-spacing:.32em; text-transform:uppercase; color:#bbb; margin-bottom:14px;
+  }
+  .hero-copy h1 {
+    font-size:clamp(26px,4vw,50px); font-weight:400; letter-spacing:.02em; line-height:1.15;
+  }
+  .mute {
+    position:absolute; right:28px; bottom:28px; z-index:2;
+    width:40px; height:40px; padding:0; border:0; background:none;
+    color:#fff; display:grid; place-items:center;
+    filter: drop-shadow(0 1px 4px #000a);
+    opacity:.88;
+  }
+  .mute:hover { opacity:1; }
+  .mute svg { width:26px; height:26px; }
+  .mute .i-on { display:none; }
+  .mute.is-on .i-on { display:block; }
+  .mute.is-on .i-off { display:none; }
+  .skip {
+    position:absolute; top:50%; z-index:2; transform:translateY(-50%);
+    width:48px; height:48px; padding:0; border:0; background:none;
+    color:#fff; display:grid; place-items:center;
+    filter: drop-shadow(0 1px 4px #000a);
+    opacity:.75;
+  }
+  .skip:hover { opacity:1; }
+  .skip svg { width:32px; height:32px; }
+  .skip-prev { left:16px; }
+  .skip-next { right:16px; }
+  .clock {
+    position:absolute; right:28px; bottom:76px; z-index:2;
+    font-variant-numeric:tabular-nums;
+    font-size:13px; letter-spacing:.12em; color:#fff;
+    text-shadow:0 1px 8px #000c;
+    pointer-events:none;
+  }
+  #reader {
+    display:none; position:fixed; inset:0; z-index:20;
+    background:#0a0a0a; overflow:auto; overscroll-behavior:contain;
+  }
+  body.reader #reader { display:block; }
+  #pdf-pages {
+    display:flex; flex-direction:column; align-items:center;
+    gap:20px; padding:48px 0 80px;
+  }
+  #pdf-pages canvas { display:block; width:min(980px,92vw); height:auto; background:#fff; }
+  #view3d {
+    display:none; position:fixed; inset:0; z-index:20;
+    background:#0a0a0a; overflow:hidden;
+  }
+  body.view3d #view3d { display:block; }
+  #view3d iframe {
+    position:absolute; inset:0; top:48px; width:100%; height:calc(100% - 48px);
+    display:block; border:0; background:#0a0a0a;
+  }
   @media (max-width:900px) {
-    main,.hero-copy { padding-left:20px; padding-right:20px; }
-    .metrics,.row3,.grid7 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .hero-copy { left:20px; right:72px; bottom:24px; }
+    .brand { gap:10px; }
+    .brand-title { font-size:13px; }
+    .brand-names { font-size:9px; }
   }
 </style>
 </head>
 <body>
 <div class="bar">
-  <span>IDPA 1383 · BBZB</span>
-  <div>
-    <button type="button" class="iconbtn" id="btn-menu">Menü</button>
-    <button type="button" class="iconbtn" id="btn-pdf">Arbeit</button>
+  <div class="brand">
+    <span class="brand-title">Marmot Engine V2</span>
+    <span class="brand-names">Julian Baumeler · Mateusz Wnuk · Patrick Zaugg</span>
+  </div>
+  <div class="bar-actions">
+    <button type="button" class="iconbtn" id="btn-3d" aria-label="3D">
+      <span class="lbl">3D</span>
+      <svg class="x" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+    </button>
+    <button type="button" class="iconbtn" id="btn-pdf" aria-label="PDF">
+      <span class="lbl">PDF</span>
+      <svg class="x" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+    </button>
   </div>
 </div>
-<div class="scrim" id="scrim"></div>
-<nav id="drawer" aria-hidden="true">
-  <a href="#top">Start</a>
-  <a href="#zahlen">Zahlen</a>
-  <a href="#aufbau">Aufbau</a>
-  <a href="#tests">Tests</a>
-  <a href="#kosten">Kosten</a>
-</nav>
 
 <header class="hero" id="top">
-  <video id="hero-video" autoplay muted loop playsinline preload="auto" poster="posters/06-mf-6.jpg">
-    <source src="media/06-mf-6.mp4" type="video/mp4">
+  <video id="vid-a" class="on" autoplay muted playsinline preload="auto" poster="posters/hero-mg4.jpg">
+    <source src="media/hero-mg4.mp4?v=1" type="video/mp4">
   </video>
-  <div class="hero-shade"></div>
-  <div class="hero-copy">
-    <p class="who">Julian Baumeler · Mateusz Wnuk · Patrick Zaugg</p>
-    <h1>Vom Skizzenpapier bis zu einem der weltweit wirtschaftlichsten druckgasförderten Triebwerken im Bereich Kosten pro Schubeinheit.</h1>
-    <p class="sub">MF 6 · 29. Mai 2026</p>
+  <video id="vid-b" muted playsinline preload="auto"></video>
+  <div class="caption-stage">
+    <div class="hero-copy on" id="copy-a">
+      <p class="who">MG 4</p>
+      <h1>Uncooled steel. Engine-rich. The chamber wall melts.</h1>
+    </div>
+    <div class="hero-copy" id="copy-b">
+      <p class="who"></p>
+      <h1></h1>
+    </div>
   </div>
-  <button type="button" class="mute" id="btn-mute">Ton aus</button>
+  <button type="button" class="skip skip-prev" id="btn-prev" aria-label="Previous test">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M7.72 12.53a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 1 1 1.06 1.06L9.31 12l6.97 6.97a.75.75 0 1 1-1.06 1.06l-7.5-7.5Z" clip-rule="evenodd"/></svg>
+  </button>
+  <button type="button" class="skip skip-next" id="btn-next" aria-label="Next test">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z" clip-rule="evenodd"/></svg>
+  </button>
+  <div class="clock" id="hero-clock">0.00 / 0.00 s</div>
+  <button type="button" class="mute" id="btn-mute" aria-label="Ton an" title="Ton">
+    <svg class="i-on" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 0 0 1.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.66 1.905H6.44l4.5 4.5c.945.945 2.56.276 2.56-1.06V4.061ZM18.584 5.106a.75.75 0 0 1 1.06 0c3.808 3.807 3.808 9.98 0 13.788a.75.75 0 0 1-1.06-1.06 8.25 8.25 0 0 0 0-11.668.75.75 0 0 1 0-1.06Z"/><path fill="currentColor" d="M15.932 7.757a.75.75 0 0 1 1.061 0 6 6 0 0 1 0 8.486.75.75 0 0 1-1.06-1.061 4.5 4.5 0 0 0 0-6.364.75.75 0 0 1 0-1.06Z"/></svg>
+    <svg class="i-off" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 0 0 1.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.66 1.905H6.44l4.5 4.5c.945.945 2.56.276 2.56-1.06V4.061ZM17.78 9.22a.75.75 0 1 0-1.06 1.06L18.44 12l-1.72 1.72a.75.75 0 1 0 1.06 1.06l1.72-1.72 1.72 1.72a.75.75 0 1 0 1.06-1.06L20.56 12l1.72-1.72a.75.75 0 1 0-1.06-1.06l-1.72 1.72-1.72-1.72Z"/></svg>
+  </button>
 </header>
 
-<main>
-  <section id="zahlen">
-    <h2>272 CHF. 24.12 N.</h2>
-    <p class="lede">Druckgasgefördertes Ethanol/GOX-Triebwerk aus COTS und Eigenfertigung. Schub aus Federweg: F = k × Δℓ.</p>
-    <div class="metrics">
-      <div class="metric"><b>272 CHF</b><span>Total · Tabelle 3</span></div>
-      <div class="metric"><b>24.12 N</b><span>Schub · MF 7</span></div>
-      <div class="metric"><b>2.46 kg</b><span>äquivalent</span></div>
-      <div class="metric"><b>108.8</b><span>CHF/kg · Diagramm 1</span></div>
-    </div>
-  </section>
-
-  <section id="aufbau">
-    <h2>Drei Wege. Einer gebaut.</h2>
-    <div class="row3">
-      <div class="card"><h3>Kaltgas</h3><p>Zuverlässig. I<sub>sp</sub> zu klein.</p></div>
-      <div class="card"><h3>Turbopumpe</h3><p>Leistung. Nicht low-cost.</p></div>
-      <div class="card"><h3>Druckgas</h3><p>N₂ über Ethanol. Gewählt.</p></div>
-    </div>
-    <div class="fig"><img src="figures/emb-051.png" alt="Drucktank"></div>
-    <p class="cap">Abb. 27 · 5 L · 10 bar N₂ über Ethanol</p>
-  </section>
-
-  <section id="tests">
-    <h2>Sieben Hotfires.</h2>
-    <p class="lede">YG Messing. MG ungekühlter Stahl. MF Ethanol und Mantel. Klick öffnet den Originalclip.</p>
-    <div class="grid7">
-      <button class="clip" type="button" data-clip="0"><img src="posters/01-yg-1.jpg" alt="YG 1"><span>01 YG 1</span></button>
-      <button class="clip" type="button" data-clip="1"><img src="posters/02-yg-2.jpg" alt="YG 2"><span>02 YG 2</span></button>
-      <button class="clip" type="button" data-clip="2"><img src="posters/03-mg-3.jpg" alt="MG 3"><span>03 MG 3</span></button>
-      <button class="clip" type="button" data-clip="3"><img src="posters/04-mg-4.jpg" alt="MG 4"><span>04 MG 4</span></button>
-      <button class="clip" type="button" data-clip="4"><img src="posters/05-mf-5.jpg" alt="MF 5"><span>05 MF 5</span></button>
-      <button class="clip" type="button" data-clip="5"><img src="posters/06-mf-6.jpg" alt="MF 6"><span>06 MF 6</span></button>
-      <button class="clip" type="button" data-clip="6"><img src="posters/07-mf-7.jpg" alt="MF 7"><span>07 MF 7</span></button>
-    </div>
-  </section>
-
-  <section id="kosten">
-    <h2>Günstigster Schub.</h2>
-    <table>
-      <tr><th>Projekt</th><th>Total</th><th>Schub</th><th>CHF / kg</th></tr>
-      <tr><td>EPFL ME401</td><td>~190’000</td><td>1’220 kg</td><td>155.7</td></tr>
-      <tr><td>Purdue Space Y</td><td>&gt;20’000</td><td>139 kg</td><td>143.9</td></tr>
-      <tr><td>BBZB</td><td>272</td><td>2.46 kg</td><td>108.8</td></tr>
-    </table>
-    <p class="lede" style="margin-top:28px">Julian Baumeler · Mateusz Wnuk · Patrick Zaugg · 29.05.2026</p>
-  </section>
-</main>
-
-<div id="theater">
-  <div><div class="ov"><span id="t-title">Clip</span><button type="button" class="iconbtn" id="btn-back">Zurück</button></div><div class="rule"></div></div>
-  <div class="stage"><video id="player" controls preload="metadata" playsinline></video></div>
+<div id="reader"><div id="pdf-pages"></div></div>
+<div id="view3d">
+  <iframe data-src="viewers/vtk.html" src="viewers/vtk.html" title="vtk.js" allow="clipboard-write"></iframe>
+  <button type="button" class="iconbtn" id="btn-cut" aria-label="Section view">Section view</button>
 </div>
-<div id="reader">
-  <div><div class="ov"><span>Arbeit · 61 Seiten</span><button type="button" class="iconbtn" id="btn-pdf-close">Zurück</button></div><div class="rule"></div></div>
-  <div class="stage"><iframe id="pdf-frame" title="PDF" src="about:blank"></iframe></div>
-</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
-const CLIPS = [
-  { code:"YG 1", file:"media/01-yg-1.mp4", poster:"posters/01-yg-1.jpg" },
-  { code:"YG 2", file:"media/02-yg-2.mp4", poster:"posters/02-yg-2.jpg" },
-  { code:"MG 3", file:"media/03-mg-3.mp4", poster:"posters/03-mg-3.jpg" },
-  { code:"MG 4", file:"media/04-mg-4.mp4", poster:"posters/04-mg-4.jpg" },
-  { code:"MF 5", file:"media/05-mf-5.mp4", poster:"posters/05-mf-5.jpg" },
-  { code:"MF 6", file:"media/06-mf-6.mp4", poster:"posters/06-mf-6.jpg" },
-  { code:"MF 7", file:"media/07-mf-7.mp4", poster:"posters/07-mf-7.jpg" },
+const vidA = document.getElementById("vid-a");
+const vidB = document.getElementById("vid-b");
+let hero = vidA;
+const HERO_PLAYLIST = [
+  {
+    file: "media/hero-mg4.mp4?v=1",
+    kicker: "MG 4",
+    line: "Uncooled steel. Engine-rich. The chamber wall melts.",
+  },
+  {
+    file: "media/06-mf-6a.mp4?v=1",
+    kicker: "MF 6 · First thrust",
+    line: "First visible thrust at half valve. Marmot holds.",
+  },
+  {
+    file: "media/06-mf-6b.mp4?v=30s",
+    kicker: "MF 6 · Too much ethanol",
+    line: "The weld fails. Ethanol dumps. The tank catches fire.",
+  },
+  {
+    file: "media/06-mf-6c.mp4?v=1",
+    kicker: "MF 6 · Pulsejet",
+    line: "Bonus: a pulsejet-style burn, not the rocket plume.",
+  },
+  {
+    file: "media/07-mf-7.mp4?v=15s",
+    kicker: "MF 7",
+    line: "Bent steel feed. Clean burn. 24.12 N · 2.46 kg.",
+  },
 ];
-const drawer = document.getElementById("drawer");
-const setNav = (on) => { document.body.classList.toggle("navopen", on); drawer.setAttribute("aria-hidden", on ? "false" : "true"); };
-document.getElementById("btn-menu").onclick = () => setNav(!document.body.classList.contains("navopen"));
-document.getElementById("scrim").onclick = () => setNav(false);
-document.querySelectorAll("nav a").forEach((a) => a.addEventListener("click", () => setNav(false)));
-const hero = document.getElementById("hero-video");
+let heroI = 0;
+const copyA = document.getElementById("copy-a");
+const copyB = document.getElementById("copy-b");
+let copy = copyA;
+let swapping = false;
+const fillCopy = (el, c) => {
+  el.querySelector(".who").textContent = c.kicker;
+  el.querySelector("h1").textContent = c.line;
+};
+const playHero = (i) => {
+  const n = HERO_PLAYLIST.length;
+  const nextI = ((i % n) + n) % n;
+  if (swapping || nextI === heroI) return;
+  const c = HERO_PLAYLIST[nextI];
+  const incoming = hero === vidA ? vidB : vidA;
+  const incomingCopy = copy === copyA ? copyB : copyA;
+  fillCopy(incomingCopy, c);
+  incoming.muted = hero.muted;
+  incoming.src = c.file;
+  const go = () => {
+    incoming.onloadeddata = null;
+    const n = HERO_PLAYLIST.length;
+    const dir = nextI === (heroI + 1) % n ? 1 : -1;
+    const from = dir === 1 ? "from-right" : "from-left";
+    const to = dir === 1 ? "to-left" : "to-right";
+    [incoming, incomingCopy].forEach((el) => {
+      el.classList.remove("on", "from-right", "from-left", "to-left", "to-right");
+      el.style.transition = "none";
+      el.classList.add(from);
+    });
+    incoming.offsetWidth;
+    [incoming, incomingCopy].forEach((el) => { el.style.transition = ""; });
+    incoming.play().catch(() => {});
+    incoming.classList.remove(from);
+    incoming.classList.add("on");
+    incomingCopy.classList.remove(from);
+    incomingCopy.classList.add("on");
+    hero.classList.remove("on");
+    hero.classList.add(to);
+    copy.classList.remove("on");
+    copy.classList.add(to);
+    const outgoing = hero;
+    const outgoingCopy = copy;
+    setTimeout(() => {
+      if (outgoing !== hero) {
+        outgoing.pause();
+        outgoing.classList.remove("to-left", "to-right");
+        outgoingCopy.classList.remove("to-left", "to-right");
+      }
+      swapping = false;
+    }, 560);
+    hero = incoming;
+    copy = incomingCopy;
+    heroI = nextI;
+  };
+  swapping = true;
+  if (incoming.readyState >= 2) go();
+  else incoming.onloadeddata = go;
+};
+const onEnded = (el) => { if (el === hero && !swapping) playHero(heroI + 1); };
+vidA.addEventListener("ended", () => onEnded(vidA));
+vidB.addEventListener("ended", () => onEnded(vidB));
 hero.play().catch(() => {});
-document.getElementById("btn-mute").onclick = () => {
-  hero.muted = !hero.muted;
-  document.getElementById("btn-mute").textContent = hero.muted ? "Ton aus" : "Ton an";
+document.getElementById("btn-prev").onclick = () => playHero(heroI - 1);
+document.getElementById("btn-next").onclick = () => playHero(heroI + 1);
+const heroClock = document.getElementById("hero-clock");
+const fmtClock = (el, v) => {
+  const t = Number.isFinite(v.currentTime) ? v.currentTime : 0;
+  const d = Number.isFinite(v.duration) && v.duration > 0 ? v.duration : 0;
+  el.textContent = t.toFixed(2) + " / " + d.toFixed(2) + " s";
 };
-const player = document.getElementById("player");
-function openClip(i) {
-  setNav(false);
-  const c = CLIPS[i];
-  document.body.classList.add("theater");
-  document.getElementById("t-title").textContent = c.code;
-  player.poster = c.poster; player.src = c.file; player.load();
-}
-document.getElementById("btn-back").onclick = () => { player.pause(); document.body.classList.remove("theater"); };
-document.querySelectorAll("[data-clip]").forEach((b) => b.addEventListener("click", () => openClip(+b.dataset.clip)));
-let pdfOn = false;
-document.getElementById("btn-pdf").onclick = () => {
-  setNav(false);
-  if (!pdfOn) { document.getElementById("pdf-frame").src = "Raketentriebwerk.pdf"; pdfOn = true; }
-  document.body.classList.add("reader");
+const tickClocks = () => {
+  fmtClock(heroClock, hero);
+  requestAnimationFrame(tickClocks);
 };
-document.getElementById("btn-pdf-close").onclick = () => document.body.classList.remove("reader");
-window.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") {
-    if (document.body.classList.contains("theater")) { player.pause(); document.body.classList.remove("theater"); }
-    else if (document.body.classList.contains("reader")) document.body.classList.remove("reader");
-    else setNav(false);
+const muteBtn = document.getElementById("btn-mute");
+const paintMute = () => {
+  muteBtn.classList.toggle("is-on", !hero.muted);
+  muteBtn.setAttribute("aria-label", hero.muted ? "Ton an" : "Ton aus");
+};
+paintMute();
+muteBtn.onclick = () => {
+  const on = !hero.muted;
+  vidA.muted = on;
+  vidB.muted = on;
+  paintMute();
+};
+tickClocks();
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+const pdfPages = document.getElementById("pdf-pages");
+const reader = document.getElementById("reader");
+let pdfBuilt = false;
+const buildPdf = async () => {
+  if (pdfBuilt) return;
+  const doc = await pdfjsLib.getDocument("Raketentriebwerk.pdf").promise;
+  const width = Math.min(980, Math.floor(innerWidth * 0.92));
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  for (let i = 1; i <= doc.numPages; i++) {
+    const page = await doc.getPage(i);
+    const base = page.getViewport({ scale: 1 });
+    const scale = (width / base.width) * dpr;
+    const vp = page.getViewport({ scale });
+    const canvas = document.createElement("canvas");
+    canvas.width = vp.width;
+    canvas.height = vp.height;
+    pdfPages.appendChild(canvas);
+    await page.render({ canvasContext: canvas.getContext("2d", { alpha: false }), viewport: vp }).promise;
   }
-  if (e.key === "m" || e.key === "M") setNav(!document.body.classList.contains("navopen"));
-  if (e.key === "a" || e.key === "A") document.getElementById("btn-pdf").click();
+  pdfBuilt = true;
+};
+const pdfBtn = document.getElementById("btn-pdf");
+const paintPdfBtn = () => {
+  const on = document.body.classList.contains("reader");
+  pdfBtn.setAttribute("aria-label", on ? "Close PDF" : "PDF");
+};
+const openPdf = async () => {
+  if (document.body.classList.contains("reader")) {
+    document.body.classList.remove("reader");
+    paintPdfBtn();
+    return;
+  }
+  document.body.classList.remove("view3d", "cut");
+  document.body.classList.add("reader");
+  paintPdfBtn();
+  reader.scrollTop = 0;
+  await buildPdf();
+};
+const btn3d = document.getElementById("btn-3d");
+const btnCut = document.getElementById("btn-cut");
+const syncCut = () => {
+  const on = document.body.classList.contains("cut");
+  document.querySelectorAll("#view3d iframe").forEach((f) => {
+    try { f.contentWindow.postMessage({ type: "cut", on }, "*"); } catch (e) {}
+  });
+};
+const open3d = async () => {
+  if (document.body.classList.contains("view3d")) {
+    document.body.classList.remove("view3d", "cut");
+    return;
+  }
+  document.body.classList.remove("reader");
+  paintPdfBtn();
+  document.body.classList.add("view3d");
+  document.querySelectorAll("#view3d iframe[data-src]").forEach((f) => {
+    if (!f.getAttribute("src")) {
+      f.src = f.dataset.src;
+      f.addEventListener("load", () => {
+        syncCut();
+        killLockButtons();
+      });
+    }
+    killLockButtons();
+  });
+};
+const killLockButtons = () => {
+  document.querySelectorAll("#view3d iframe").forEach((f) => {
+    try {
+      const d = f.contentDocument;
+      if (!d) return;
+      d.querySelectorAll("#locks, button[data-mode]").forEach((el) => el.remove());
+    } catch (e) {}
+  });
+};
+setInterval(killLockButtons, 200);
+btnCut.onclick = () => {
+  if (!document.body.classList.contains("view3d")) return;
+  document.body.classList.toggle("cut");
+  syncCut();
+};
+document.getElementById("btn-pdf").onclick = openPdf;
+btn3d.onclick = open3d;
+window.addEventListener("message", (e) => {
+  if (!e.data || e.data.type !== "pick-copy" || !e.data.text) return;
+  const t = String(e.data.text);
+  const write = () => navigator.clipboard && navigator.clipboard.writeText
+    ? navigator.clipboard.writeText(t)
+    : Promise.reject();
+  write().catch(() => {
+    const ta = document.createElement("textarea");
+    ta.value = t;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); } catch (err) {}
+    ta.remove();
+  });
+});
+if (/\b3d=/.test(location.search) || location.hash === "#3d") open3d();
+if (/\bcut=/.test(location.search)) document.body.classList.add("cut");
+window.addEventListener("keydown", (e) => {
+  if (document.body.classList.contains("reader") || document.body.classList.contains("view3d")) {
+    if (e.key === "Escape") {
+      document.body.classList.remove("reader", "view3d", "cut");
+      paintPdfBtn();
+    }
+    return;
+  }
+  if (e.key === "p" || e.key === "P") document.getElementById("btn-pdf").click();
+  if (e.key === "ArrowLeft") { e.preventDefault(); playHero(heroI - 1); }
+  if (e.key === "ArrowRight") { e.preventDefault(); playHero(heroI + 1); }
 });
 </script>
 </body>

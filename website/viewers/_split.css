@@ -1,0 +1,6 @@
+html,body{margin:0;height:100%;background:#111;overflow:hidden;font:11px Helvetica,Arial,sans-serif;color:#fff}
+.split{display:grid;grid-template-columns:1fr 1fr;height:100%;gap:1px;background:#000}
+.pane{position:relative;min-width:0;min-height:0;background:#0a0a0a}
+canvas,x3d{position:absolute;inset:0;width:100%;height:100%;display:block;border:0}
+.tag{position:absolute;left:8px;bottom:8px;z-index:2;letter-spacing:.16em;text-transform:uppercase;font-size:10px;background:#000a;padding:4px 8px;pointer-events:none}
+.err{position:absolute;left:8px;top:8px;color:#e10600;z-index:3}

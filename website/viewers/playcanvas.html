@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  html, body { margin: 0; height: 100%; background: #0b0b0b; overflow: hidden; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .err { position: absolute; left: 12px; bottom: 36px; color: #e10600; font: 13px Helvetica, sans-serif; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script src="../vendor/playcanvas/playcanvas.min.js"></script>
+<script>
+(async () => {
+  const canvas = document.getElementById("c");
+  const app = new pc.Application(canvas, {});
+  app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+  app.setCanvasResolution(pc.RESOLUTION_AUTO);
+  addEventListener("resize", () => app.resizeCanvas());
+  app.start();
+
+  const buf = await (await fetch("../models/Engine2.stl?v=dl1")).arrayBuffer();
+  const view = new DataView(buf);
+  const n = view.getUint32(80, true);
+  const pos = new Float32Array(n * 9);
+  const nrm = new Float32Array(n * 9);
+  let o = 84;
+  let minX = Infinity, minY = Infinity, minZ = Infinity;
+  let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+  for (let i = 0; i < n; i++) {
+    const nx = view.getFloat32(o, true), ny = view.getFloat32(o + 4, true), nz = view.getFloat32(o + 8, true);
+    o += 12;
+    for (let v = 0; v < 3; v++) {
+      const idx = i * 9 + v * 3;
+      nrm[idx] = nx; nrm[idx + 1] = ny; nrm[idx + 2] = nz;
+      const x = view.getFloat32(o, true), y = view.getFloat32(o + 4, true), z = view.getFloat32(o + 8, true);
+      pos[idx] = x; pos[idx + 1] = y; pos[idx + 2] = z;
+      if (x < minX) minX = x; if (y < minY) minY = y; if (z < minZ) minZ = z;
+      if (x > maxX) maxX = x; if (y > maxY) maxY = y; if (z > maxZ) maxZ = z;
+      o += 12;
+    }
+    o += 2;
+  }
+  const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2, cz = (minZ + maxZ) / 2;
+  const span = Math.max(maxX - minX, maxY - minY, maxZ - minZ) || 1;
+  for (let i = 0; i < pos.length; i += 3) {
+    pos[i] -= cx; pos[i + 1] -= cy; pos[i + 2] -= cz;
+  }
+
+  const mesh = new pc.Mesh(app.graphicsDevice);
+  mesh.setPositions(pos);
+  mesh.setNormals(nrm);
+  mesh.update();
+  const mat = new pc.StandardMaterial();
+  mat.useMetalness = true;
+  mat.metalness = 1;
+  mat.gloss = 0.72;
+  mat.diffuse = new pc.Color(0.78, 0.8, 0.82);
+  mat.update();
+  const entity = new pc.Entity("engine");
+  entity.addComponent("render", { meshInstances: [new pc.MeshInstance(mesh, mat)] });
+  app.root.addChild(entity);
+
+  const camera = new pc.Entity("camera");
+  camera.addComponent("camera", { clearColor: new pc.Color(0.04, 0.04, 0.04), fov: 32 });
+  camera.setPosition(span * 1.1, span * 0.45, span * 1.6);
+  camera.lookAt(0, 0, 0);
+  app.root.addChild(camera);
+
+  const key = new pc.Entity("key");
+  key.addComponent("light", { type: "directional", color: new pc.Color(1, 1, 1), intensity: 1.2 });
+  key.setEulerAngles(45, 30, 0);
+  app.root.addChild(key);
+  const fill = new pc.Entity("fill");
+  fill.addComponent("light", { type: "directional", color: new pc.Color(0.7, 0.8, 0.9), intensity: 0.4 });
+  fill.setEulerAngles(-20, -140, 0);
+  app.root.addChild(fill);
+
+  app.on("update", (dt) => {
+    entity.rotate(0, 28 * dt, 0);
+  });
+})().catch((e) => {
+  const p = document.createElement("p");
+  p.className = "err";
+  p.textContent = String(e && e.message ? e.message : e);
+  document.body.appendChild(p);
+});
+</script>
+</body>
+</html>

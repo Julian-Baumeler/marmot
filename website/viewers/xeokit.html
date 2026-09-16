@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  html, body { margin: 0; height: 100%; background: #1a1a1a; overflow: hidden; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .err { position: absolute; left: 12px; bottom: 36px; color: #e10600; font: 13px Helvetica, sans-serif; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script type="module">
+import { Viewer, STLLoaderPlugin } from "../vendor/xeokit/xeokit-sdk.es.js";
+
+const viewer = new Viewer({
+  canvasId: "c",
+  transparent: false,
+});
+viewer.scene.camera.eye = [4, 2, 8];
+viewer.scene.camera.look = [0, 0, 0];
+viewer.scene.camera.up = [0, 1, 0];
+if (viewer.scene.sao) viewer.scene.sao.enabled = true;
+const loader = new STLLoaderPlugin(viewer);
+const model = loader.load({
+  id: "engine",
+  src: "../models/Engine2.stl?v=dl1",
+  edges: true,
+  smoothNormals: true,
+  rotate: [-90, 0, 0],
+});
+model.on("loaded", () => {
+  viewer.cameraFlight.jumpTo(model);
+});
+viewer.scene.on("tick", () => {
+  viewer.camera.orbitYaw(0.2);
+});
+addEventListener("resize", () => {
+  if (viewer.scene) viewer.scene.render();
+});
+</script>
+</body>
+</html>

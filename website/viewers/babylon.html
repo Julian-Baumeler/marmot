@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  html, body { margin: 0; height: 100%; background: #0a0a0a; overflow: hidden; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; outline: none; }
+  .err { position: absolute; left: 12px; bottom: 36px; color: #e10600; font: 13px Helvetica, sans-serif; }
+  #babylonjsLoadingDiv, .babylonjsLoadingDiv { display: none !important; visibility: hidden !important; opacity: 0 !important; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script src="../vendor/babylon/babylon.js"></script>
+<script src="../vendor/babylon/babylonjs.loaders.min.js"></script>
+<script src="../vendor/earcut/earcut.min.js"></script>
+<script>
+(async () => {
+  BABYLON.SceneLoader.ShowLoadingScreen = false;
+  const canvas = document.getElementById("c");
+  const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true, disableLoadingScreen: true });
+  engine.displayLoadingUI = function () {};
+  engine.hideLoadingUI = function () {};
+  if (engine.loadingScreen) {
+    engine.loadingScreen.displayLoadingUI = function () {};
+    engine.loadingScreen.hideLoadingUI = function () {};
+  }
+  const scene = new BABYLON.Scene(engine);
+  scene.clearColor = new BABYLON.Color4(0.039, 0.039, 0.039, 1);
+  await BABYLON.SceneLoader.AppendAsync("../models/", "Engine2.stl?v=dl1", scene);
+  engine.hideLoadingUI();
+  scene.createDefaultCameraOrLight(true, true, true);
+  if (scene.activeCamera) {
+    scene.activeCamera.attachControl(canvas, true);
+    scene.activeCamera.useAutoRotationBehavior = true;
+    if (scene.activeCamera.autoRotationBehavior) {
+      scene.activeCamera.autoRotationBehavior.idleRotationSpeed = 0.25;
+    }
+  }
+  scene.environmentIntensity = 1.1;
+  try {
+    const env = scene.createDefaultEnvironment({
+      createGround: false,
+      createSkybox: true,
+      skyboxSize: 80,
+    });
+    if (env && env.skybox) env.skybox.setEnabled(false);
+    if (env && env.ground) env.ground.setEnabled(false);
+  } catch (e) {}
+
+  const isModel = (m) =>
+    m.getTotalVertices && m.getTotalVertices() > 0 &&
+    m.isEnabled() && m.name.indexOf("__section") !== 0 &&
+    m.name !== "BackgroundPlane" && m.name !== "BackgroundSkybox";
+
+  const modelMeshes = () => scene.meshes.filter(isModel);
+
+  const sd = (plane, p) => plane.normal.x * p.x + plane.normal.y * p.y + plane.normal.z * p.z + plane.d;
+
+  const midPlane = () => {
+    const min = new BABYLON.Vector3(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
+    const max = new BABYLON.Vector3(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
+    modelMeshes().forEach((m) => {
+      m.computeWorldMatrix(true);
+      m.refreshBoundingInfo();
+      const b = m.getBoundingInfo().boundingBox;
+      min.minimizeInPlace(b.minimumWorld);
+      max.maximizeInPlace(b.maximumWorld);
+    });
+    const center = min.add(max).scale(0.5);
+    const size = max.subtract(min);
+    const n = new BABYLON.Vector3(1, 0, 0);
+    if (size.y <= size.x && size.y <= size.z) n.set(0, 1, 0);
+    else if (size.z <= size.x && size.z <= size.y) n.set(0, 0, 1);
+    return { plane: BABYLON.Plane.FromPositionAndNormal(center, n), center, size, min, max };
+  };
+
+  const worldTris = (mesh) => {
+    const pos = mesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+    if (!pos) return [];
+    let ind = mesh.getIndices();
+    if (!ind || !ind.length) {
+      ind = new Array(pos.length / 3);
+      for (let i = 0; i < ind.length; i++) ind[i] = i;
+    }
+    const wm = mesh.getWorldMatrix();
+    const out = [];
+    const p = (k) => {
+      const o = k * 3;
+      return BABYLON.Vector3.TransformCoordinates(new BABYLON.Vector3(pos[o], pos[o + 1], pos[o + 2]), wm);
+    };
+    for (let i = 0; i + 2 < ind.length; i += 3) out.push([p(ind[i]), p(ind[i + 1]), p(ind[i + 2])]);
+    return out;
+  };
+
+  const intersectEdge = (a, b, plane, eps) => {
+    const da = sd(plane, a);
+    const db = sd(plane, b);
+    if (Math.abs(da) < eps && Math.abs(db) < eps) return null;
+    if (da * db > 0) return null;
+    const t = da / (da - db);
+    return BABYLON.Vector3.Lerp(a, b, t);
+  };
+
+  const collectSegments = (plane, eps) => {
+    const segs = [];
+    modelMeshes().forEach((mesh) => {
+      worldTris(mesh).forEach((tri) => {
+        const hits = [];
+        for (let e = 0; e < 3; e++) {
+          const hit = intersectEdge(tri[e], tri[(e + 1) % 3], plane, eps);
+          if (hit) hits.push(hit);
+        }
+        if (hits.length >= 2) segs.push([hits[0], hits[1]]);
+      });
+    });
+    return segs;
+  };
+
+  const stitch = (segs, eps) => {
+    const eps2 = eps * eps;
+    const dist2 = (a, b) => BABYLON.Vector3.DistanceSquared(a, b);
+    const used = new Uint8Array(segs.length);
+    const loops = [];
+    const nearest = (pt) => {
+      let best = -1, bestD = eps2, end = 0;
+      for (let i = 0; i < segs.length; i++) {
+        if (used[i]) continue;
+        const d0 = dist2(pt, segs[i][0]);
+        const d1 = dist2(pt, segs[i][1]);
+        if (d0 < bestD) { bestD = d0; best = i; end = 0; }
+        if (d1 < bestD) { bestD = d1; best = i; end = 1; }
+      }
+      return best < 0 ? null : { i: best, end };
+    };
+    for (let s = 0; s < segs.length; s++) {
+      if (used[s]) continue;
+      used[s] = 1;
+      const loop = [segs[s][0].clone(), segs[s][1].clone()];
+      let guard = 0;
+      while (guard++ < segs.length + 2) {
+        const n = nearest(loop[loop.length - 1]);
+        if (!n) break;
+        used[n.i] = 1;
+        const other = segs[n.i][1 - n.end];
+        if (dist2(other, loop[0]) < eps2) break;
+        loop.push(other.clone());
+      }
+      if (loop.length >= 3) loops.push(loop);
+    }
+    return loops;
+  };
+
+  const area2 = (poly) => {
+    let a = 0;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) a += poly[j][0] * poly[i][1] - poly[i][0] * poly[j][1];
+    return a / 2;
+  };
+  const pip = (x, y, poly) => {
+    let c = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      const xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1];
+      if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi + 1e-30) + xi) c = !c;
+    }
+    return c;
+  };
+
+  const hatchTex = () => {
+    const s = 64;
+    const tex = new BABYLON.DynamicTexture("__hatch", { width: s, height: s }, scene, false);
+    const g = tex.getContext();
+    g.fillStyle = "#c2c6cb";
+    g.fillRect(0, 0, s, s);
+    g.strokeStyle = "#1a1a1a";
+    g.lineWidth = 2;
+    g.beginPath();
+    for (let i = -s; i <= s * 2; i += 8) {
+      g.moveTo(i, 0);
+      g.lineTo(i + s, s);
+    }
+    g.stroke();
+    tex.update();
+    tex.wrapU = BABYLON.Texture.WRAP_ADDRESSMODE;
+    tex.wrapV = BABYLON.Texture.WRAP_ADDRESSMODE;
+    return tex;
+  };
+
+  let hatchMat = null;
+  const sectionMat = () => {
+    if (hatchMat) return hatchMat;
+    hatchMat = new BABYLON.StandardMaterial("__hatchMat", scene);
+    hatchMat.diffuseTexture = hatchTex();
+    hatchMat.specularColor = BABYLON.Color3.Black();
+    hatchMat.backFaceCulling = false;
+    hatchMat.zOffset = -2;
+    return hatchMat;
+  };
+
+  const buildCaps = (info) => {
+    const { plane, center, size } = info;
+    const diag = size.length() || 1;
+    const eps = Math.max(diag * 1e-5, 1e-6);
+    const n = plane.normal.clone().normalize();
+    const t1 = BABYLON.Vector3.Cross(Math.abs(n.y) < 0.9 ? BABYLON.Axis.Y : BABYLON.Axis.X, n).normalize();
+    const t2 = BABYLON.Vector3.Cross(n, t1).normalize();
+    const to2 = (p) => {
+      const d = p.subtract(center);
+      return [BABYLON.Vector3.Dot(d, t1), BABYLON.Vector3.Dot(d, t2)];
+    };
+    const loops = stitch(collectSegments(plane, eps), eps * 8);
+    const packed = loops.map((pts3) => {
+      const pts2 = pts3.map(to2);
+      return { pts3, pts2, area: Math.abs(area2(pts2)) };
+    }).filter((L) => L.pts2.length >= 3 && L.area > diag * diag * 1e-10);
+    packed.sort((a, b) => b.area - a.area);
+    const usedHole = new Set();
+    const groups = [];
+    for (let i = 0; i < packed.length; i++) {
+      if (usedHole.has(i)) continue;
+      const holes = [];
+      for (let j = i + 1; j < packed.length; j++) {
+        if (usedHole.has(j)) continue;
+        if (!pip(packed[j].pts2[0][0], packed[j].pts2[0][1], packed[i].pts2)) continue;
+        let nested = false;
+        for (let k = i + 1; k < j; k++) {
+          if (usedHole.has(k)) continue;
+          if (pip(packed[j].pts2[0][0], packed[j].pts2[0][1], packed[k].pts2) &&
+              pip(packed[k].pts2[0][0], packed[k].pts2[0][1], packed[i].pts2)) {
+            nested = true;
+            break;
+          }
+        }
+        if (!nested) {
+          holes.push(packed[j]);
+          usedHole.add(j);
+        }
+      }
+      groups.push({ outer: packed[i], holes });
+    }
+
+    const positions = [];
+    const indices = [];
+    const uvs = [];
+    const normals = [];
+    const uvScale = 1 / Math.max(diag * 0.04, 1e-4);
+
+    groups.forEach((g) => {
+      const outerA = area2(g.outer.pts2);
+      const outer3 = outerA < 0 ? g.outer.pts3.slice().reverse() : g.outer.pts3;
+      const outer2 = outerA < 0 ? g.outer.pts2.slice().reverse() : g.outer.pts2;
+      const holes3 = [];
+      const holes2 = [];
+      g.holes.forEach((h) => {
+        const a = area2(h.pts2);
+        holes3.push(a > 0 ? h.pts3.slice().reverse() : h.pts3);
+        holes2.push(a > 0 ? h.pts2.slice().reverse() : h.pts2);
+      });
+      const flat = [];
+      const holeIdx = [];
+      outer2.forEach((q) => { flat.push(q[0], q[1]); });
+      holes2.forEach((h) => {
+        holeIdx.push(flat.length / 2);
+        h.forEach((q) => { flat.push(q[0], q[1]); });
+      });
+      const tris = earcut(flat, holeIdx, 2);
+      const pts3 = outer3.concat(...holes3);
+      const pts2 = outer2.concat(...holes2);
+      const base = positions.length / 3;
+      const o = n.scale(-diag * 1e-4);
+      pts3.forEach((p, i) => {
+        positions.push(p.x + o.x, p.y + o.y, p.z + o.z);
+        uvs.push(pts2[i][0] * uvScale, pts2[i][1] * uvScale);
+        normals.push(n.x, n.y, n.z);
+      });
+      for (let i = 0; i < tris.length; i++) indices.push(base + tris[i]);
+    });
+
+    if (!indices.length) return;
+    const cap = new BABYLON.Mesh("__sectionCap", scene);
+    const vd = new BABYLON.VertexData();
+    vd.positions = positions;
+    vd.indices = indices;
+    vd.normals = normals;
+    vd.uvs = uvs;
+    vd.applyToMesh(cap);
+    cap.material = sectionMat();
+    cap.isPickable = false;
+  };
+
+  const disposeCaps = () => {
+    scene.meshes.filter((m) => m.name.indexOf("__section") === 0).forEach((m) => m.dispose());
+  };
+
+  const setCut = (on) => {
+    disposeCaps();
+    if (!on) {
+      scene.clipPlane = null;
+      modelMeshes().forEach((m) => {
+        if (m.material) {
+          m.material.backFaceCulling = true;
+          m.material.needDepthPrePass = false;
+        }
+      });
+      return;
+    }
+    const info = midPlane();
+    scene.clipPlane = info.plane;
+    modelMeshes().forEach((m) => {
+      if (m.material) {
+        m.material.backFaceCulling = false;
+        m.material.needDepthPrePass = true;
+      }
+    });
+    buildCaps(info);
+  };
+
+  addEventListener("message", (e) => {
+    if (!e.data || e.data.type !== "cut") return;
+    setCut(!!e.data.on);
+  });
+
+  engine.runRenderLoop(() => scene.render());
+  addEventListener("resize", () => engine.resize());
+})().catch((e) => {
+  const p = document.createElement("p");
+  p.className = "err";
+  p.textContent = String(e && e.message ? e.message : e);
+  document.body.appendChild(p);
+});
+</script>
+</body>
+</html>
