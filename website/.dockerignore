@@ -3,12 +3,7 @@
 __pycache__
 .DS_Store
 tests
-media/01-yg-1.mp4
-media/02-yg-2.mp4
-media/03-mg-3.mp4
-media/04-mg-4.mp4
-media/05-mf-5.mp4
-media/06-mf-6.mp4
+media/*.mp4
 media/README.md
 Engine2.stl
 Engine.f3d

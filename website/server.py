@@ -21,6 +21,14 @@ S3_REGION = os.environ.get("AWS_DEFAULT_REGION") or os.environ.get("AWS_REGION")
 _s3 = None
 
 
+def _usable_mp4(path):
+    """Skip missing files and Git LFS pointer stubs (~130 bytes)."""
+    try:
+        return os.path.getsize(path) >= 1024
+    except OSError:
+        return False
+
+
 def s3():
     global _s3
     if _s3 is None:
@@ -81,11 +89,12 @@ class Handler(SimpleHTTPRequestHandler):
         self._rewrite_slides()
         path = urlparse(self.path).path
         local = self.translate_path(self.path)
-        if S3_BUCKET and path.startswith("/media/") and path.endswith(".mp4") and not os.path.isfile(local):
+        if S3_BUCKET and path.startswith("/media/") and path.endswith(".mp4") and not _usable_mp4(local):
             key = unquote(path.lstrip("/"))
             try:
                 head = s3().head_object(Bucket=S3_BUCKET, Key=key)
-            except Exception:
+            except Exception as e:
+                sys.stderr.write(f"s3 miss {key}: {e}\n")
                 self.send_error(HTTPStatus.NOT_FOUND, "File not found")
                 return
             size = int(head["ContentLength"])

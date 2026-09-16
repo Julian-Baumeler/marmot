@@ -1,0 +1,5 @@
+media/*.mp4
+Raketentriebwerk.pdf
+tests
+__pycache__
+*.pyc
