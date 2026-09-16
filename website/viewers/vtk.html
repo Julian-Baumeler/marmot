@@ -144,7 +144,7 @@ watchCut((on) => {
   cutOn = on;
   fullA.setVisibility(!on);
   cutActors.forEach((a) => a.setVisibility(on));
-  legend.classList.toggle("on", on);
+  legend.classList.toggle("on", on && !/[?&]embed=1\b/.test(location.search));
   rw.render();
 });
 

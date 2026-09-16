@@ -217,26 +217,31 @@ let hero = vidA;
 const HERO_PLAYLIST = [
   {
     file: "media/hero-mg4.mp4?v=1",
+    poster: "posters/hero-mg4.jpg",
     kicker: "MG 4",
     line: "Uncooled steel. Engine-rich. The chamber wall melts.",
   },
   {
     file: "media/06-mf-6a.mp4?v=1",
+    poster: "posters/06-mf-6a.jpg",
     kicker: "MF 6 · First thrust",
     line: "First visible thrust at half valve. Marmot holds.",
   },
   {
     file: "media/06-mf-6b.mp4?v=30s",
+    poster: "posters/06-mf-6b.jpg",
     kicker: "MF 6 · Too much ethanol",
     line: "The weld fails. Ethanol dumps. The tank catches fire.",
   },
   {
     file: "media/06-mf-6c.mp4?v=1",
+    poster: "posters/06-mf-6c.jpg",
     kicker: "MF 6 · Pulsejet",
     line: "Bonus: a pulsejet-style burn, not the rocket plume.",
   },
   {
     file: "media/07-mf-7.mp4?v=15s",
+    poster: "posters/07-mf-7.jpg",
     kicker: "MF 7",
     line: "Bent steel feed. Clean burn. 24.12 N · 2.46 kg.",
   },
@@ -259,46 +264,46 @@ const playHero = (i) => {
   const incomingCopy = copy === copyA ? copyB : copyA;
   fillCopy(incomingCopy, c);
   incoming.muted = hero.muted;
-  incoming.src = c.file;
-  const go = () => {
-    incoming.onloadeddata = null;
-    const n = HERO_PLAYLIST.length;
-    const dir = nextI === (heroI + 1) % n ? 1 : -1;
-    const from = dir === 1 ? "from-right" : "from-left";
-    const to = dir === 1 ? "to-left" : "to-right";
-    [incoming, incomingCopy].forEach((el) => {
-      el.classList.remove("on", "from-right", "from-left", "to-left", "to-right");
-      el.style.transition = "none";
-      el.classList.add(from);
-    });
-    incoming.offsetWidth;
-    [incoming, incomingCopy].forEach((el) => { el.style.transition = ""; });
-    incoming.play().catch(() => {});
-    incoming.classList.remove(from);
-    incoming.classList.add("on");
-    incomingCopy.classList.remove(from);
-    incomingCopy.classList.add("on");
-    hero.classList.remove("on");
-    hero.classList.add(to);
-    copy.classList.remove("on");
-    copy.classList.add(to);
-    const outgoing = hero;
-    const outgoingCopy = copy;
-    setTimeout(() => {
-      if (outgoing !== hero) {
-        outgoing.pause();
-        outgoing.classList.remove("to-left", "to-right");
-        outgoingCopy.classList.remove("to-left", "to-right");
-      }
-      swapping = false;
-    }, 560);
-    hero = incoming;
-    copy = incomingCopy;
-    heroI = nextI;
-  };
+  incoming.poster = c.poster;
+  incoming.pause();
+  if (incoming.getAttribute("src") !== c.file) incoming.src = c.file;
+  const rewind = () => { try { incoming.currentTime = 0; } catch (e) {} };
+  if (incoming.readyState >= 1) rewind();
+  else incoming.addEventListener("loadedmetadata", rewind, { once: true });
+  incoming.play().catch(() => {});
+  const dir = nextI === (heroI + 1) % n ? 1 : -1;
+  const from = dir === 1 ? "from-right" : "from-left";
+  const to = dir === 1 ? "to-left" : "to-right";
+  [incoming, incomingCopy].forEach((el) => {
+    el.classList.remove("on", "from-right", "from-left", "to-left", "to-right");
+    el.style.transition = "none";
+    el.classList.add(from);
+  });
+  incoming.offsetWidth;
+  [incoming, incomingCopy].forEach((el) => { el.style.transition = ""; });
+  incoming.classList.remove(from);
+  incoming.classList.add("on");
+  incomingCopy.classList.remove(from);
+  incomingCopy.classList.add("on");
+  hero.classList.remove("on");
+  hero.classList.add(to);
+  copy.classList.remove("on");
+  copy.classList.add(to);
+  const outgoing = hero;
+  const outgoingCopy = copy;
   swapping = true;
-  if (incoming.readyState >= 2) go();
-  else incoming.onloadeddata = go;
+  setTimeout(() => {
+    if (outgoing !== hero) {
+      outgoing.pause();
+      try { outgoing.currentTime = 0; } catch (e) {}
+      outgoing.classList.remove("to-left", "to-right");
+      outgoingCopy.classList.remove("to-left", "to-right");
+    }
+    swapping = false;
+  }, 560);
+  hero = incoming;
+  copy = incomingCopy;
+  heroI = nextI;
 };
 const onEnded = (el) => { if (el === hero && !swapping) playHero(heroI + 1); };
 vidA.addEventListener("ended", () => onEnded(vidA));

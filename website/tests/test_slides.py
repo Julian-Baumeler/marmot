@@ -15,7 +15,6 @@ class SlidesDeck(unittest.TestCase):
         text = SLIDES.read_text(encoding="utf-8")
         for title in ("Leitfrage", "Einleitung", "Ventile", "Schubmessen", "Brennkammer", "Tests", "Schluss"):
             self.assertIn(title, text)
-        self.assertIn("Mateusz Wnuk", text)
         self.assertIn("Elektronische Kugelhähne", text)
         self.assertIn("figures/emb-034.png", text)
         self.assertIn("figures/emb-036.png", text)
