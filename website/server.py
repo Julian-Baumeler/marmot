@@ -85,41 +85,60 @@ class Handler(SimpleHTTPRequestHandler):
         if parsed.path in ("/slides", "/slides/"):
             self.path = "/slides.html" + (("?" + parsed.query) if parsed.query else "")
 
+    def _s3_mp4(self):
+        if not S3_BUCKET:
+            return None
+        path = urlparse(self.path).path
+        if not (path.startswith("/media/") and path.endswith(".mp4")):
+            return None
+        local = self.translate_path(self.path)
+        if _usable_mp4(local):
+            return None
+        key = unquote(path.lstrip("/"))
+        try:
+            head = s3().head_object(Bucket=S3_BUCKET, Key=key)
+        except Exception as e:
+            sys.stderr.write(f"s3 miss {key}: {e}\n")
+            self.send_error(HTTPStatus.NOT_FOUND, "File not found")
+            return False
+        size = int(head["ContentLength"])
+        parsed = self._parse_range(size)
+        if parsed is None:
+            self.send_error(HTTPStatus.REQUESTED_RANGE_NOT_SATISFIABLE)
+            return False
+        if parsed == "unsat":
+            self.send_response(HTTPStatus.REQUESTED_RANGE_NOT_SATISFIABLE)
+            self.send_header("Content-Range", f"bytes */{size}")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return False
+        start, end, status = parsed
+        length = end - start + 1
+        self.send_response(status)
+        self.send_header("Content-type", "video/mp4")
+        self.send_header("Content-Length", str(length))
+        if status == HTTPStatus.PARTIAL_CONTENT:
+            self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
+        self.end_headers()
+        return key, start, end, status, length
+
+    def do_HEAD(self):
+        self._rewrite_slides()
+        if self._s3_mp4() is not None:
+            return
+        super().do_HEAD()
+
     def do_GET(self):
         self._rewrite_slides()
-        path = urlparse(self.path).path
-        local = self.translate_path(self.path)
-        if S3_BUCKET and path.startswith("/media/") and path.endswith(".mp4") and not _usable_mp4(local):
-            key = unquote(path.lstrip("/"))
-            try:
-                head = s3().head_object(Bucket=S3_BUCKET, Key=key)
-            except Exception as e:
-                sys.stderr.write(f"s3 miss {key}: {e}\n")
-                self.send_error(HTTPStatus.NOT_FOUND, "File not found")
-                return
-            size = int(head["ContentLength"])
-            parsed = self._parse_range(size)
-            if parsed is None:
-                self.send_error(HTTPStatus.REQUESTED_RANGE_NOT_SATISFIABLE)
-                return
-            if parsed == "unsat":
-                self.send_response(HTTPStatus.REQUESTED_RANGE_NOT_SATISFIABLE)
-                self.send_header("Content-Range", f"bytes */{size}")
-                self.send_header("Content-Length", "0")
-                self.end_headers()
-                return
-            start, end, status = parsed
-            length = end - start + 1
+        meta = self._s3_mp4()
+        if meta is False:
+            return
+        if meta:
+            key, start, end, status, length = meta
             kwargs = {"Bucket": S3_BUCKET, "Key": key}
             if status == HTTPStatus.PARTIAL_CONTENT:
                 kwargs["Range"] = f"bytes={start}-{end}"
             obj = s3().get_object(**kwargs)
-            self.send_response(status)
-            self.send_header("Content-type", "video/mp4")
-            self.send_header("Content-Length", str(length))
-            if status == HTTPStatus.PARTIAL_CONTENT:
-                self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
-            self.end_headers()
             body = obj["Body"]
             remaining = length
             while remaining > 0:
