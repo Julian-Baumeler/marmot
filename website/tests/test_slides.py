@@ -13,7 +13,7 @@ SERVER = ROOT / "server.py"
 class SlidesDeck(unittest.TestCase):
     def test_seven_jpsm_titles_and_ventile_photos(self):
         text = SLIDES.read_text(encoding="utf-8")
-        for title in ("Leitfrage", "Einleitung", "Ventile", "Schubmessen", "Brennkammer", "Tests", "Schluss"):
+        for title in ("Leitfrage", "Druckgasförderung", "Ventile", "Schubmessen", "Brennkammer", "Tests", "Schluss"):
             self.assertIn(title, text)
         self.assertIn("Elektronische Kugelhähne", text)
         self.assertIn("figures/emb-034.png", text)
