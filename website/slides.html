@@ -24,6 +24,10 @@
   }
   .slide.on { display:flex; }
   .title-slide { align-items:center; justify-content:center; text-align:center; }
+  .qr-slide .qr {
+    width:min(42vh, 420px); height:auto; margin-top:36px;
+  }
+  .qr-slide h1 { letter-spacing:.04em; }
   .title-slide h1 {
     font-size:clamp(48px, 8vw, 120px);
     font-weight:700;
@@ -44,8 +48,42 @@
     flex:1 1 auto; min-height:0; margin-top:12px;
   }
   .hero-fig img { width:100%; height:100%; object-fit:contain; }
-  .figrow-2 { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+  .clip {
+    flex:1 1 auto; min-height:0; width:100%;
+    object-fit:contain; background:#000;
+  }
+  .vidwrap {
+    flex:1 1 auto; min-height:0; margin-top:12px;
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .vidbar { display:flex; align-items:center; gap:14px; flex:0 0 auto; }
+  .track {
+    flex:1; height:8px; background:#fff2; border-radius:99px; cursor:pointer;
+    position:relative; touch-action:none;
+  }
+  .track i {
+    position:absolute; left:0; top:0; bottom:0; width:100%;
+    background:#fff; border-radius:inherit;
+    transform:scaleX(0); transform-origin:left center;
+    will-change:transform; pointer-events:none;
+  }
+  .vidt {
+    font: 13px/1 ui-monospace, Menlo, monospace;
+    color:var(--dim); min-width:11em; text-align:right; font-variant-numeric:tabular-nums;
+  }
+  .mute {
+    width:40px; height:40px; padding:0; border:0; background:none;
+    color:#fff; display:grid; place-items:center; flex:0 0 auto;
+    opacity:.88; cursor:pointer;
+  }
+  .mute:hover { opacity:1; }
+  .mute svg { width:26px; height:26px; }
+  .mute .i-on { display:none; }
+  .mute.is-on .i-on { display:block; }
+  .mute.is-on .i-off { display:none; }
+
   .figrow-kammer { grid-template-columns:1fr 1fr 0.72fr; }
+  .figrow-tests { grid-template-columns:repeat(4, minmax(0, 1fr)); }
   .fig iframe { width:100%; height:100%; border:0; display:block; background:#0a0a0a; }
   .eq {
     margin:14px 0 8px;
@@ -65,6 +103,12 @@
     flex:1 1 auto;
     min-height:0;
     margin-top:18px;
+  }
+  .figrow.figrow-2 {
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    width:min(920px, 100%);
+    margin-inline:auto;
+    align-self:center;
   }
   .figrow > div { min-width:0; min-height:0; display:flex; flex-direction:column; }
   .fig { flex:1 1 auto; min-height:0; background:#000; overflow:hidden; }
@@ -88,7 +132,7 @@
   body.fs .bar-actions { display:none; }
   @media (max-width:980px) {
     .slide { padding:28px 22px 48px; }
-    .figrow, .figrow-kammer { grid-template-columns:1fr; }
+    .figrow, .figrow-kammer, .figrow-tests { grid-template-columns:1fr; }
     .figrow .fig { min-height:min(22vh, 180px); }
     .title-slide h1 { font-size:clamp(36px, 12vw, 72px); }
   }
@@ -146,20 +190,6 @@
       </div>
     </div>
   </section>
-  <section class="slide" data-title="Schubmessen">
-    <p class="kicker">Schubmessen</p>
-    <h2>24 N an der Feder</h2>
-    <div class="figrow figrow-2">
-      <div>
-        <div class="fig"><img src="slides-gfx/schub-achse.jpg" alt="3D-Drucker x-Achse als Führung"></div>
-
-      </div>
-      <div>
-        <div class="fig"><img src="slides-gfx/schub-feder.jpg" alt="Finale Messeinrichtung mit Zugfeder"></div>
-
-      </div>
-    </div>
-  </section>
   <section class="slide" data-title="Brennkammer">
     <p class="kicker">Brennkammer</p>
     <h2>Marmot 1 → 2</h2>
@@ -178,37 +208,60 @@
       </div>
     </div>
   </section>
-  <section class="slide" data-title="Tests">
-    <p class="kicker">Tests</p>
-    <h2>YG 1 → MF 7</h2>
-    <div class="figrow">
+  <section class="slide" data-title="Schubmessen">
+    <p class="kicker">Schubmessen</p>
+    <h2>24 N an der Feder</h2>
+    <div class="figrow figrow-2">
       <div>
-        <div class="fig"><img src="slides-gfx/yg1.jpg" alt="YG 1 Minimaltest nachts"></div>
+        <div class="fig"><img src="slides-gfx/schub-achse.jpg" alt="3D-Drucker x-Achse als Führung"></div>
 
       </div>
       <div>
-        <div class="fig"><img src="slides-gfx/engine-rich.jpg" alt="MG 4 engine-rich Funkenstrahl"></div>
-
-      </div>
-      <div>
-        <div class="fig"><img src="slides-gfx/mf7.jpg" alt="MF 7 saubere violette Flamme"></div>
+        <div class="fig"><img src="slides-gfx/schub-feder.jpg" alt="Finale Messeinrichtung mit Zugfeder"></div>
 
       </div>
     </div>
+  </section>
+  <section class="slide" data-title="YG 2">
+    <video class="clip" muted playsinline preload="metadata" poster="posters/02-yg-2.jpg" src="media/02-yg-2.mp4"></video>
+  </section>
+  <section class="slide" data-title="MG 4">
+    <video class="clip" muted playsinline preload="metadata" poster="posters/04-mg-4.jpg" src="media/04-mg-4.mp4"></video>
+  </section>
+  <section class="slide" data-title="MF 5">
+    <video class="clip" muted playsinline preload="metadata" poster="posters/05-mf-5.jpg" src="media/05-mf-5.mp4"></video>
+  </section>
+  <section class="slide" data-title="MF 6">
+    <video class="clip" muted playsinline preload="metadata" poster="posters/06-mf-6.jpg" src="media/06-mf-6.mp4"></video>
+  </section>
+  <section class="slide" data-title="MF 7">
+    <video class="clip" muted playsinline preload="metadata" poster="posters/07-mf-7.jpg" src="media/07-mf-7.mp4"></video>
   </section>
   <section class="slide" data-title="Schluss">
     <p class="kicker">Schluss</p>
     <h2>272 CHF / 2.5 kg</h2>
     <div class="hero-fig"><img src="slides-gfx/kosten.jpg" alt="Kosten gegen Schub: BBZB, Purdue, EPFL"></div>
   </section>
+  <section class="slide title-slide qr-slide" data-title="QR">
+    <h1>rocketengine.ch</h1>
+    <img class="qr" src="slides-gfx/qr-rocketengine.png" alt="QR-Code rocketengine.ch">
+  </section>
 </div>
 <script>
 const slides = [...document.querySelectorAll(".slide")];
 let i = 0;
+let slideMuted = true;
 const go = (n) => {
+  document.querySelectorAll(".slide video").forEach((v) => { v.pause(); });
   i = (n + slides.length) % slides.length;
   slides.forEach((s, k) => s.classList.toggle("on", k === i));
   history.replaceState(null, "", "#s" + (i + 1));
+  const v = slides[i].querySelector("video");
+  if (v) {
+    v.muted = slideMuted;
+    try { v.currentTime = 0; } catch (e) {}
+    v.play().catch(() => {});
+  }
 };
 const fromHash = () => {
   const m = /^#s(\d+)$/.exec(location.hash);
@@ -222,9 +275,74 @@ addEventListener("keydown", (e) => {
   if (e.key === "End") { e.preventDefault(); go(slides.length - 1); }
 });
 document.getElementById("deck").addEventListener("click", (e) => {
-  if (e.target.closest("a, button")) return;
+  if (e.target.closest("a, button, .vidwrap")) return;
   go(e.clientX > innerWidth / 2 ? i + 1 : i - 1);
 });
+const fmtVid = (t, d) =>
+  (Number.isFinite(t) ? t : 0).toFixed(2) + " / " + (Number.isFinite(d) && d > 0 ? d : 0).toFixed(2) + " s";
+const MUTE_SVG = '<svg class="i-on" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 0 0 1.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.66 1.905H6.44l4.5 4.5c.945.945 2.56.276 2.56-1.06V4.061ZM18.584 5.106a.75.75 0 0 1 1.06 0c3.808 3.807 3.808 9.98 0 13.788a.75.75 0 0 1-1.06-1.06 8.25 8.25 0 0 0 0-11.668.75.75 0 0 1 0-1.06Z"/><path fill="currentColor" d="M15.932 7.757a.75.75 0 0 1 1.061 0 6 6 0 0 1 0 8.486.75.75 0 0 1-1.06-1.061 4.5 4.5 0 0 0 0-6.364.75.75 0 0 1 0-1.06Z"/></svg><svg class="i-off" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 0 0 1.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.66 1.905H6.44l4.5 4.5c.945.945 2.56.276 2.56-1.06V4.061ZM17.78 9.22a.75.75 0 1 0-1.06 1.06L18.44 12l-1.72 1.72a.75.75 0 1 0 1.06 1.06l1.72-1.72 1.72 1.72a.75.75 0 1 0 1.06-1.06L20.56 12l1.72-1.72a.75.75 0 1 0-1.06-1.06l-1.72 1.72-1.72-1.72Z"/></svg>';
+const paintMute = () => {
+  document.querySelectorAll(".slide .mute").forEach((btn) => {
+    btn.classList.toggle("is-on", !slideMuted);
+    btn.setAttribute("aria-label", slideMuted ? "Ton an" : "Ton aus");
+  });
+  document.querySelectorAll(".slide video.clip").forEach((el) => { el.muted = slideMuted; });
+};
+document.querySelectorAll(".slide video.clip").forEach((v) => {
+  const wrap = document.createElement("div");
+  wrap.className = "vidwrap";
+  v.replaceWith(wrap);
+  wrap.appendChild(v);
+  const bar = document.createElement("div");
+  bar.className = "vidbar";
+  bar.innerHTML = '<div class="track"><i></i></div><span class="vidt">0.00 / 0.00 s</span><button type="button" class="mute" aria-label="Ton an" title="Ton">' + MUTE_SVG + "</button>";
+  wrap.appendChild(bar);
+  bar.querySelector(".mute").addEventListener("click", (e) => {
+    e.stopPropagation();
+    slideMuted = !slideMuted;
+    paintMute();
+  });
+  const fill = bar.querySelector("i");
+  const clock = bar.querySelector(".vidt");
+  const track = bar.querySelector(".track");
+  let dragging = false;
+  let raf = 0;
+  const paintAt = (t) => {
+    const d = v.duration;
+    const dur = Number.isFinite(d) && d > 0 ? d : 0;
+    const cur = Number.isFinite(t) ? t : 0;
+    fill.style.transform = "scaleX(" + (dur ? Math.min(1, Math.max(0, cur / dur)) : 0) + ")";
+    clock.textContent = fmtVid(cur, dur);
+  };
+  const paint = () => paintAt(v.currentTime);
+  const tick = () => {
+    if (!dragging) paint();
+    if (v.paused || v.ended) return;
+    if (v.requestVideoFrameCallback) v.requestVideoFrameCallback(tick);
+    else raf = requestAnimationFrame(tick);
+  };
+  const seekFromEvent = (e) => {
+    const d = v.duration;
+    if (!Number.isFinite(d) || d <= 0) return;
+    const r = track.getBoundingClientRect();
+    const t = Math.min(d, Math.max(0, ((e.clientX - r.left) / r.width) * d));
+    v.currentTime = t;
+    paintAt(t);
+  };
+  v.addEventListener("play", tick);
+  v.addEventListener("pause", () => { cancelAnimationFrame(raf); paint(); });
+  v.addEventListener("loadedmetadata", paint);
+  v.addEventListener("durationchange", paint);
+  track.addEventListener("pointerdown", (e) => {
+    dragging = true;
+    track.setPointerCapture(e.pointerId);
+    seekFromEvent(e);
+  });
+  track.addEventListener("pointermove", (e) => { if (dragging) seekFromEvent(e); });
+  track.addEventListener("pointerup", () => { dragging = false; paint(); });
+  track.addEventListener("pointercancel", () => { dragging = false; paint(); });
+});
+paintMute();
 const btnFull = document.getElementById("btn-full");
 const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
 const paintFs = () => {

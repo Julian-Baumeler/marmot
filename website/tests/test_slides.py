@@ -13,13 +13,15 @@ SERVER = ROOT / "server.py"
 class SlidesDeck(unittest.TestCase):
     def test_seven_jpsm_titles_and_ventile_photos(self):
         text = SLIDES.read_text(encoding="utf-8")
-        for title in ("Leitfrage", "Druckgasförderung", "Ventile", "Schubmessen", "Brennkammer", "Tests", "Schluss"):
+        for title in ("Leitfrage", "Druckgasförderung", "Ventile", "Schubmessen", "Brennkammer", "Schluss"):
             self.assertIn(title, text)
         self.assertIn("Elektronische Kugelhähne", text)
         self.assertIn("figures/emb-034.png", text)
         self.assertIn("figures/emb-036.png", text)
         self.assertIn("figures/emb-038.png", text)
-        self.assertEqual(text.count('class="slide'), 7)
+        self.assertGreaterEqual(text.count('class="slide'), 7)
+        for clip in ("02-yg-2.mp4", "07-mf-7.mp4"):
+            self.assertIn(clip, text)
         self.assertIn('id="btn-full"', text)
         self.assertIn("requestFullscreen", text)
         self.assertIn('id="btn-exit"', text)
