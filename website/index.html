@@ -133,14 +133,13 @@
   }
   #reader {
     display:none; position:fixed; inset:0; z-index:20;
-    background:#0a0a0a; overflow:auto; overscroll-behavior:contain;
+    background:#0a0a0a;
   }
   body.reader #reader { display:block; }
-  #pdf-pages {
-    display:flex; flex-direction:column; align-items:center;
-    gap:20px; padding:64px 0 80px;
+  #reader iframe {
+    position:absolute; inset:0; top:64px; width:100%; height:calc(100% - 64px);
+    border:0; background:#fff;
   }
-  #pdf-pages canvas { display:block; width:min(980px,92vw); height:auto; background:#fff; }
   #view3d {
     display:none; position:fixed; inset:0; z-index:20;
     background:#0a0a0a; overflow:hidden;
@@ -204,12 +203,11 @@
   </button>
 </header>
 
-<div id="reader"><div id="pdf-pages"></div></div>
+<div id="reader"><iframe title="Raketentriebwerk" src="about:blank"></iframe></div>
 <div id="view3d">
-  <iframe data-src="viewers/vtk.html" src="viewers/vtk.html" title="vtk.js" allow="clipboard-write"></iframe>
+  <iframe data-src="viewers/vtk.html" src="viewers/vtk.html" title="vtk.js"></iframe>
   <button type="button" class="iconbtn" id="btn-cut" aria-label="Section view">Section view</button>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
 const vidA = document.getElementById("vid-a");
 const vidB = document.getElementById("vid-b");
@@ -339,34 +337,13 @@ muteBtn.onclick = () => {
 };
 tickClocks();
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-const pdfPages = document.getElementById("pdf-pages");
-const reader = document.getElementById("reader");
-let pdfBuilt = false;
-const buildPdf = async () => {
-  if (pdfBuilt) return;
-  const doc = await pdfjsLib.getDocument("Raketentriebwerk.pdf").promise;
-  const width = Math.min(980, Math.floor(innerWidth * 0.92));
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  for (let i = 1; i <= doc.numPages; i++) {
-    const page = await doc.getPage(i);
-    const base = page.getViewport({ scale: 1 });
-    const scale = (width / base.width) * dpr;
-    const vp = page.getViewport({ scale });
-    const canvas = document.createElement("canvas");
-    canvas.width = vp.width;
-    canvas.height = vp.height;
-    pdfPages.appendChild(canvas);
-    await page.render({ canvasContext: canvas.getContext("2d", { alpha: false }), viewport: vp }).promise;
-  }
-  pdfBuilt = true;
-};
+const pdfFrame = document.querySelector("#reader iframe");
 const pdfBtn = document.getElementById("btn-pdf");
 const paintPdfBtn = () => {
   const on = document.body.classList.contains("reader");
   pdfBtn.setAttribute("aria-label", on ? "Close PDF" : "PDF");
 };
-const openPdf = async () => {
+const openPdf = () => {
   if (document.body.classList.contains("reader")) {
     document.body.classList.remove("reader");
     paintPdfBtn();
@@ -375,8 +352,7 @@ const openPdf = async () => {
   document.body.classList.remove("view3d", "cut");
   document.body.classList.add("reader");
   paintPdfBtn();
-  reader.scrollTop = 0;
-  await buildPdf();
+  if (pdfFrame.getAttribute("src") === "about:blank") pdfFrame.src = "Raketentriebwerk.pdf";
 };
 const btn3d = document.getElementById("btn-3d");
 const btnCut = document.getElementById("btn-cut");
@@ -386,7 +362,7 @@ const syncCut = () => {
     try { f.contentWindow.postMessage({ type: "cut", on }, "*"); } catch (e) {}
   });
 };
-const open3d = async () => {
+const open3d = () => {
   if (document.body.classList.contains("view3d")) {
     document.body.classList.remove("view3d", "cut");
     return;
@@ -397,24 +373,10 @@ const open3d = async () => {
   document.querySelectorAll("#view3d iframe[data-src]").forEach((f) => {
     if (!f.getAttribute("src")) {
       f.src = f.dataset.src;
-      f.addEventListener("load", () => {
-        syncCut();
-        killLockButtons();
-      });
+      f.addEventListener("load", syncCut, { once: true });
     }
-    killLockButtons();
   });
 };
-const killLockButtons = () => {
-  document.querySelectorAll("#view3d iframe").forEach((f) => {
-    try {
-      const d = f.contentDocument;
-      if (!d) return;
-      d.querySelectorAll("#locks, button[data-mode]").forEach((el) => el.remove());
-    } catch (e) {}
-  });
-};
-setInterval(killLockButtons, 200);
 btnCut.onclick = () => {
   if (!document.body.classList.contains("view3d")) return;
   document.body.classList.toggle("cut");
@@ -428,23 +390,6 @@ const goHome = () => {
 document.getElementById("btn-home").onclick = goHome;
 document.getElementById("btn-pdf").onclick = openPdf;
 btn3d.onclick = open3d;
-window.addEventListener("message", (e) => {
-  if (!e.data || e.data.type !== "pick-copy" || !e.data.text) return;
-  const t = String(e.data.text);
-  const write = () => navigator.clipboard && navigator.clipboard.writeText
-    ? navigator.clipboard.writeText(t)
-    : Promise.reject();
-  write().catch(() => {
-    const ta = document.createElement("textarea");
-    ta.value = t;
-    ta.style.position = "fixed";
-    ta.style.opacity = "0";
-    document.body.appendChild(ta);
-    ta.select();
-    try { document.execCommand("copy"); } catch (err) {}
-    ta.remove();
-  });
-});
 if (/\b3d=/.test(location.search) || location.hash === "#3d") open3d();
 if (/\bcut=/.test(location.search)) document.body.classList.add("cut");
 window.addEventListener("keydown", (e) => {

@@ -49,6 +49,7 @@ class Handler(SimpleHTTPRequestHandler):
         **SimpleHTTPRequestHandler.extensions_map,
         ".mp4": "video/mp4",
         ".jpg": "image/jpeg",
+        ".pdf": "application/pdf",
         ".html": "text/html; charset=utf-8",
     }
 

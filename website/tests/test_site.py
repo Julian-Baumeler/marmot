@@ -78,6 +78,8 @@ class Simplicity(unittest.TestCase):
         self.assertIn("<script>", text)
         self.assertNotIn('type="module"', text)
         self.assertIn('id="btn-menu"', text)
+        self.assertIn("Raketentriebwerk.pdf", text)
+        self.assertTrue((ROOT / "Raketentriebwerk.pdf").is_file())
         self.assertIn("transform:translateX(-105%)", text.replace(" ", ""))
 
 
