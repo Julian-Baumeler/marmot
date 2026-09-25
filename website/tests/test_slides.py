@@ -22,6 +22,8 @@ class SlidesDeck(unittest.TestCase):
         self.assertGreaterEqual(text.count('class="slide'), 7)
         for clip in ("02-yg-2.mp4", "07-mf-7.mp4"):
             self.assertIn(clip, text)
+        self.assertIn('data-start="60" src="media/04-mg-4.mp4"', text)
+        self.assertIn('data-start="40" src="media/05-mf-5.mp4"', text)
         self.assertIn('id="btn-full"', text)
         self.assertIn("requestFullscreen", text)
         self.assertIn('id="btn-exit"', text)

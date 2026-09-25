@@ -178,7 +178,7 @@
 
 <header class="hero" id="top">
   <video id="vid-a" class="on" autoplay muted playsinline preload="auto" poster="posters/hero-mg4.jpg">
-    <source src="media/hero-mg4.mp4?v=1" type="video/mp4">
+    <source src="media/04-mg-4.mp4?v=60s#t=60" type="video/mp4">
   </video>
   <video id="vid-b" muted playsinline preload="auto"></video>
   <div class="caption-stage">
@@ -216,7 +216,8 @@ const vidB = document.getElementById("vid-b");
 let hero = vidA;
 const HERO_PLAYLIST = [
   {
-    file: "media/hero-mg4.mp4?v=1",
+    file: "media/04-mg-4.mp4?v=60s",
+    start: 60,
     poster: "posters/hero-mg4.jpg",
     kicker: "MG 4",
     line: "Uncooled steel. Engine-rich. The chamber wall melts.",
@@ -267,7 +268,7 @@ const playHero = (i) => {
   incoming.poster = c.poster;
   incoming.pause();
   if (incoming.getAttribute("src") !== c.file) incoming.src = c.file;
-  const rewind = () => { try { incoming.currentTime = 0; } catch (e) {} };
+  const rewind = () => { try { incoming.currentTime = c.start || 0; } catch (e) {} };
   if (incoming.readyState >= 1) rewind();
   else incoming.addEventListener("loadedmetadata", rewind, { once: true });
   incoming.play().catch(() => {});
@@ -308,6 +309,9 @@ const playHero = (i) => {
 const onEnded = (el) => { if (el === hero && !swapping) playHero(heroI + 1); };
 vidA.addEventListener("ended", () => onEnded(vidA));
 vidB.addEventListener("ended", () => onEnded(vidB));
+const cueHero = () => { try { hero.currentTime = HERO_PLAYLIST[0].start || 0; } catch (e) {} };
+if (hero.readyState >= 1) cueHero();
+else hero.addEventListener("loadedmetadata", cueHero, { once: true });
 hero.play().catch(() => {});
 document.getElementById("btn-prev").onclick = () => playHero(heroI - 1);
 document.getElementById("btn-next").onclick = () => playHero(heroI + 1);

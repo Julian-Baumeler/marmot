@@ -226,10 +226,10 @@
     <video class="clip" muted playsinline preload="metadata" poster="posters/02-yg-2.jpg" src="media/02-yg-2.mp4"></video>
   </section>
   <section class="slide" data-title="MG 4">
-    <video class="clip" muted playsinline preload="metadata" poster="posters/04-mg-4.jpg" src="media/04-mg-4.mp4"></video>
+    <video class="clip" muted playsinline preload="metadata" poster="posters/04-mg-4.jpg" data-start="60" src="media/04-mg-4.mp4"></video>
   </section>
   <section class="slide" data-title="MF 5">
-    <video class="clip" muted playsinline preload="metadata" poster="posters/05-mf-5.jpg" src="media/05-mf-5.mp4"></video>
+    <video class="clip" muted playsinline preload="metadata" poster="posters/05-mf-5.jpg" data-start="40" src="media/05-mf-5.mp4"></video>
   </section>
   <section class="slide" data-title="MF 6">
     <video class="clip" muted playsinline preload="metadata" poster="posters/06-mf-6.jpg" src="media/06-mf-6.mp4"></video>
@@ -259,7 +259,10 @@ const go = (n) => {
   const v = slides[i].querySelector("video");
   if (v) {
     v.muted = slideMuted;
-    try { v.currentTime = 0; } catch (e) {}
+    const start = Number(v.dataset.start) || 0;
+    const cue = () => { try { v.currentTime = start; } catch (e) {} };
+    if (v.readyState >= 1) cue();
+    else v.addEventListener("loadedmetadata", cue, { once: true });
     v.play().catch(() => {});
   }
 };
