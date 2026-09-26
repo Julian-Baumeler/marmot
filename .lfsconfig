@@ -1,0 +1,2 @@
+[lfs]
+	fetchexclude = archive/triebwerkstests-2026/**
