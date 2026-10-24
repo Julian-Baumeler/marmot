@@ -1,3 +1,4 @@
+# Not part of the build context. The Dockerfile downloads the MP4s.
 media/*.mp4
 Raketentriebwerk.pdf
 tests

@@ -3,6 +3,8 @@
 __pycache__
 .DS_Store
 tests
+# Pointer stubs only (Git LFS). fetch_media.py downloads the real MP4s
+# earlier in the Dockerfile; copying the stubs here would replace them.
 media/*.mp4
 media/README.md
 Engine2.stl

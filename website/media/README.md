@@ -1,6 +1,6 @@
 # Media (test videos)
 
-Original hotfire clips, tracked with Git LFS:
+Original hotfire clips, tracked with Git LFS. The Railway image downloads the files linked from `index.html` and `slides.html` (`fetch_media.py`). `01-yg-1.mp4`, `03-mg-3.mp4`, and `hero-mg4.mp4` are not referenced by those pages and stay in LFS only.
 
 | File | Test |
 |---|---|
