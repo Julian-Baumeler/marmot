@@ -8,6 +8,8 @@ import socket
 import sys
 from urllib.parse import unquote, urlparse
 
+import fixit_proxy
+
 ROOT = os.path.dirname(os.path.abspath(__file__))
 os.chdir(ROOT)
 
@@ -54,6 +56,10 @@ class Handler(SimpleHTTPRequestHandler):
     }
 
     def end_headers(self):
+        if getattr(self, "_fixit_proxied", False):
+            self._fixit_proxied = False
+            super().end_headers()
+            return
         self.send_header("Accept-Ranges", "bytes")
         path = self.path.split("?", 1)[0]
         if path.endswith((".mp4", ".html", ".js", ".css")):
@@ -123,13 +129,31 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
         return key, start, end, status, length
 
+    def _fixit(self, method):
+        if fixit_proxy.matches(urlparse(self.path).path):
+            fixit_proxy.handle(self, method)
+            return True
+        return False
+
+    def do_PUT(self):
+        if not self._fixit("PUT"):
+            self.send_error(HTTPStatus.NOT_IMPLEMENTED, "Unsupported method")
+
+    def do_POST(self):
+        if not self._fixit("POST"):
+            self.send_error(HTTPStatus.NOT_IMPLEMENTED, "Unsupported method")
+
     def do_HEAD(self):
+        if self._fixit("HEAD"):
+            return
         self._rewrite_slides()
         if self._s3_mp4() is not None:
             return
         super().do_HEAD()
 
     def do_GET(self):
+        if self._fixit("GET"):
+            return
         self._rewrite_slides()
         meta = self._s3_mp4()
         if meta is False:
