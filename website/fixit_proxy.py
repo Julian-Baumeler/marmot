@@ -41,6 +41,36 @@ _HTML_ATTR = re.compile(r'((?:src|href)=["\'])/(?!/|fixit/)')
 _JS_ABS = re.compile(r'([`"\'])/(api/|assets/|favicon\.svg|fixit-logo\.svg)')
 _JS_PRELOAD = re.compile(r"return`/`\+")
 
+# Upstream Plant3D hotfix (the app cannot be rebuilt right now). On each
+# swissBUILDINGS3D "load-model" event the app hides every tile whose bounding
+# box is not inside the yard radius, but the tile that just loaded has not had
+# its world matrix updated yet, so its box is measured in raw ECEF coordinates
+# and it is hidden. Whether a house survives depends on network/render timing
+# (which is why the hall / Gebaeude 24 vanish on one host and not the other).
+# Fix: refresh the tile matrices first, and re-run the alignment + mask after
+# the next rendered frames. Second race: the ground alignment ("Me") lowers
+# the buildings by the lowest base among whichever tiles happen to be loaded
+# first, so they end up sunk into the terrain (house gone) or floating. Once
+# the terrain profile is in, align them to the yard's own height (originH,
+# the drape's zero) instead, correcting any earlier guess. Exact-match only:
+# a changed bundle passes through untouched.
+_JS_HOTFIXES = (
+    (
+        "V.addEventListener(`load-model`,()=>{H||(Ce=!0,ke(),Me(),je(),",
+        "V.addEventListener(`load-model`,()=>{H||(Ce=!0,ke(),ze(V,Se),Me(),je(),"
+        "requestAnimationFrame(()=>requestAnimationFrame(()=>{H||(ze(V,Se),Me(),je())})),",
+    ),
+    (
+        "n&&(Se.premultiply(new O().makeTranslation(0,-e.min.y,0)),ze(V,Se),we=!0)",
+        "n&&(Se.premultiply(new O().makeTranslation(0,-e.min.y,0)),V.__fxAy=e.min.y,ze(V,Se),we=!0)",
+    ),
+    (
+        ".then(([e,t,n])=>{if(!H){if(n){B.fn=n.sample,",
+        ".then(([e,t,n])=>{if(!H){if(n){Se.premultiply(new O().makeTranslation(0,"
+        "(we?V.__fxAy??0:0)-n.originH,0)),V.__fxAy=n.originH,we=!0,ze(V,Se),je(),B.fn=n.sample,",
+    ),
+)
+
 
 class _NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, *a, **k):
@@ -63,6 +93,9 @@ def rewrite(body: bytes, ctype: str) -> bytes:
         t = body.decode("utf-8", "replace")
         t = _JS_ABS.sub(lambda m: m.group(1) + PREFIX + "/" + m.group(2), t)
         t = _JS_PRELOAD.sub("return`" + PREFIX + "/`+", t)
+        for old, new in _JS_HOTFIXES:
+            if t.count(old) == 1:
+                t = t.replace(old, new)
         return t.encode("utf-8")
     if ct == "text/css":
         t = body.decode("utf-8", "replace")
